@@ -27,6 +27,7 @@ public class ScrollPresenter : FrameworkElement, IScrollAnchorProvider
 
     private float m_endOfInertiaZoomFactor = 1;
 
+    private ScrollingInteractionState m_state = ScrollingInteractionState.Idle;
     private double m_unzoomedExtentHeight;
 
     private double m_unzoomedExtentWidth;
@@ -145,24 +146,12 @@ public class ScrollPresenter : FrameworkElement, IScrollAnchorProvider
     /// <summary>
     /// Gets the vertical size of all the scrollable content in the <see cref="ScrollPresenter"/>.
     /// </summary>
-    public double ExtentHeight
-    {
-        get
-        {
-            throw new NotImplementedException();
-        }
-    }
+    public double ExtentHeight => m_unzoomedExtentHeight;
 
     /// <summary>
     /// Gets the horizontal size of all the scrollable content in the <see cref="ScrollPresenter"/>.
     /// </summary>
-    public double ExtentWidth
-    {
-        get
-        {
-            throw new NotImplementedException();
-        }
-    }
+    public double ExtentWidth => m_unzoomedExtentWidth;
 
     /// <summary>
     /// Gets or sets the ratio within the viewport where the anchor element is selected.
@@ -271,13 +260,7 @@ public class ScrollPresenter : FrameworkElement, IScrollAnchorProvider
     /// <summary>
     /// Gets the current interaction state of the control.
     /// </summary>
-    public ScrollingInteractionState State
-    {
-        get
-        {
-            throw new NotImplementedException();
-        }
-    }
+    public ScrollingInteractionState State => m_state;
 
     /// <summary>
     /// Determines the vertical position of the <see cref="ScrollPresenter"/>'s anchor point with respect to the viewport. By default, the <see cref="ScrollPresenter"/> selects an element as its <see cref="CurrentAnchor"/> by identifying the element in its viewport nearest to the anchor point.
@@ -308,24 +291,12 @@ public class ScrollPresenter : FrameworkElement, IScrollAnchorProvider
     /// <summary>
     /// Gets the vertical size of the viewable content in the <see cref="ScrollPresenter"/>.
     /// </summary>
-    public double ViewportHeight
-    {
-        get
-        {
-            throw new NotImplementedException();
-        }
-    }
+    public double ViewportHeight => m_viewportHeight;
 
     /// <summary>
     /// Gets the horizontal size of the viewable content in the <see cref="ScrollPresenter"/>.
     /// </summary>
-    public double ViewportWidth
-    {
-        get
-        {
-            throw new NotImplementedException();
-        }
-    }
+    public double ViewportWidth => m_viewportWidth;
 
     /// <summary>
     /// Gets a value that indicates the amount of scaling currently applied to content.
@@ -493,6 +464,18 @@ public class ScrollPresenter : FrameworkElement, IScrollAnchorProvider
     /// <param name="options">Options that specify whether or not animations are enabled and snap points are respected.</param>
     /// <returns>A correlation ID number used to associate this method call with corresponding events.</returns>
     public int ZoomTo(float zoomFactor, Vector2? centerPoint, ScrollingZoomOptions? options)
+    {
+        throw new NotImplementedException();
+    }
+
+    /// <inheritdoc/>
+    protected override Size ArrangeOverride(Size finalSize)
+    {
+        throw new NotImplementedException();
+    }
+
+    /// <inheritdoc/>
+    protected override Size MeasureOverride(Size availableSize)
     {
         throw new NotImplementedException();
     }
