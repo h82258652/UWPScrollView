@@ -12,7 +12,14 @@ namespace Microsoft.UI.Xaml.Controls;
 /// </summary>
 public class ScrollView : Control
 {
-    private ScrollPresenter _scrollPresenter;
+    private const string s_horizontalScrollBarPartName = "PART_HorizontalScrollBar";
+    private const string s_IScrollAnchorProviderNotImpl = "Template part named PART_ScrollPresenter does not implement IScrollAnchorProvider.";
+    private const string s_noScrollPresenterPart = "No template part named PART_ScrollPresenter was loaded.";
+    private const string s_rootPartName = "PART_Root";
+    private const string s_scrollBarsSeparatorPartName = "PART_ScrollBarsSeparator";
+    private const string s_scrollPresenterPartName = "PART_ScrollPresenter";
+    private const string s_verticalScrollBarPartName = "PART_VerticalScrollBar";
+    private ScrollPresenter? _scrollPresenter;
 
     /// <summary>
     /// Gets or sets the content that can be scrolled, panned, or zoomed.
@@ -235,6 +242,41 @@ public class ScrollView : Control
         throw new NotImplementedException();
     }
 
+    private bool CanScrollDown()
+    {
+        throw new NotImplementedException();
+    }
+
+    private bool CanScrollLeft()
+    {
+        throw new NotImplementedException();
+    }
+
+    private bool CanScrollRight()
+    {
+        throw new NotImplementedException();
+    }
+
+    private bool CanScrollUp()
+    {
+        throw new NotImplementedException();
+    }
+
+    private bool CanScrollVerticallyInDirection(bool inPositiveDirection)
+    {
+        throw new NotImplementedException();
+    }
+
+    private bool CanScrollHorizontallyInDirection(bool inPositiveDirection)
+    {
+        throw new NotImplementedException();
+    }
+
+    private bool CanScrollInDirection(FocusNavigationDirection drection)
+    {
+        throw new NotImplementedException();
+    }
+
     private void OnHideIndicatorsTimerTick(object sender, object args)
     {
         throw new NotImplementedException();
@@ -271,7 +313,7 @@ public class ScrollView : Control
     }
 
     private void UpdateVisualStates(
-                    bool useTransitions = true,
+        bool useTransitions = true,
         bool showIndicators = false,
         bool hideIndicators = false,
         bool scrollControllersAutoHidingChanged = false,
