@@ -1,6 +1,7 @@
 ﻿using Microsoft.UI.Xaml.Controls.Primitives;
 using System;
 using System.Numerics;
+using System.Reflection;
 using Windows.Devices.Input;
 using Windows.Foundation;
 using Windows.System;
@@ -79,6 +80,11 @@ public class ScrollView : Control
         typeof(ScrollView),
         new PropertyMetadata(0d, OnHorizontalAnchorRatioPropertyChanged));
 
+    public static readonly DependencyProperty HorizontalScrollBarVisibilityProperty;
+    public static readonly DependencyProperty HorizontalScrollModeProperty;
+
+    public static readonly DependencyProperty HorizontalScrollRailModeProperty;
+
     /// <summary>
     /// Identifies the <see cref="IgnoredInputKinds"/> dependency property.
     /// </summary>
@@ -105,6 +111,8 @@ public class ScrollView : Control
         typeof(double),
         typeof(ScrollView),
         new PropertyMetadata(0.1d, OnMinZoomFactorPropertyChanged));
+
+    public static readonly DependencyProperty VerticalScrollBarVisibilityProperty;
 
     /// <summary>
     /// Identifies the <see cref="VerticalScrollMode"/> dependency property.
@@ -301,11 +309,6 @@ public class ScrollView : Control
         }
     }
 
-    private static void ValidateAnchorRatio(double value)
-    {
-        ScrollPresenter.ValidateAnchorRatio(value);
-    }
-
     /// <summary>
     /// Gets or sets a value that determines how manipulation input influences scrolling behavior on the horizontal axis.
     /// </summary>
@@ -313,11 +316,11 @@ public class ScrollView : Control
     {
         get
         {
-            throw new NotImplementedException();
+            return (ScrollingScrollMode)GetValue(HorizontalScrollModeProperty);
         }
         set
         {
-            throw new NotImplementedException();
+            SetValue(HorizontalScrollModeProperty, value);
         }
     }
 
@@ -328,11 +331,11 @@ public class ScrollView : Control
     {
         get
         {
-            throw new NotImplementedException();
+            return (ScrollingRailMode)GetValue(HorizontalScrollRailModeProperty);
         }
         set
         {
-            throw new NotImplementedException();
+            SetValue(HorizontalScrollRailModeProperty, value);
         }
     }
 
@@ -341,14 +344,8 @@ public class ScrollView : Control
     /// </summary>
     public ScrollingInputKinds IgnoredInputKinds
     {
-        get
-        {
-            throw new NotImplementedException();
-        }
-        set
-        {
-            throw new NotImplementedException();
-        }
+        get => (ScrollingInputKinds)GetValue(IgnoredInputKindsProperty);
+        set => SetValue(IgnoredInputKindsProperty, value);
     }
 
     /// <summary>
@@ -400,14 +397,8 @@ public class ScrollView : Control
     /// </summary>
     public ScrollingScrollMode VerticalScrollMode
     {
-        get
-        {
-            return (ScrollingScrollMode)GetValue(VerticalScrollModeProperty);
-        }
-        set
-        {
-            throw new NotImplementedException();
-        }
+        get => (ScrollingScrollMode)GetValue(VerticalScrollModeProperty);
+        set => SetValue(VerticalScrollModeProperty, value);
     }
 
     /// <summary>
@@ -543,7 +534,7 @@ public class ScrollView : Control
     /// <returns>A correlation ID number used to associate this method call with corresponding events.</returns>
     public int ZoomTo(float zoomFactor, Vector2? centerPoint)
     {
-        throw new NotImplementedException();
+        return _scrollPresenter?.ZoomTo(zoomFactor, centerPoint) ?? s_noOpCorrelationId;
     }
 
     /// <summary>
@@ -555,7 +546,7 @@ public class ScrollView : Control
     /// <returns>A correlation ID number used to associate this method call with corresponding events.</returns>
     public int ZoomTo(float zoomFactor, Vector2? centerPoint, ScrollingZoomOptions? options)
     {
-        throw new NotImplementedException();
+        return _scrollPresenter?.ZoomTo(zoomFactor, centerPoint, options) ?? s_noOpCorrelationId;
     }
 
     /// <inheritdoc/>
@@ -584,9 +575,10 @@ public class ScrollView : Control
             onlyForAutoHidingScrollControllers: true);
     }
 
-    private static void OnComputedHorizontalScrollBarVisibilityPropertyChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+    private static void OnComputedHorizontalScrollBarVisibilityPropertyChanged(DependencyObject sender, DependencyPropertyChangedEventArgs args)
     {
-        throw new NotImplementedException();
+        ScrollView owner = (ScrollView)sender;
+        owner.OnPropertyChanged(args);
     }
 
     private static void OnComputedHorizontalScrollModePropertyChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
@@ -648,6 +640,16 @@ public class ScrollView : Control
     }
 
     private static void OnZoomModePropertyChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+    {
+        throw new NotImplementedException();
+    }
+
+    private static void ValidateAnchorRatio(double value)
+    {
+        ScrollPresenter.ValidateAnchorRatio(value);
+    }
+
+    private static void ValidateZoomFactoryBoundary(double value)
     {
         throw new NotImplementedException();
     }
@@ -719,6 +721,11 @@ public class ScrollView : Control
         VisualStateManager.GoToState(this, stateName, useTransitions);
     }
 
+    private void HandleKeyDownForXYNavigation(KeyRoutedEventArgs args)
+    {
+        throw new NotImplementedException();
+    }
+
     private void HandleScrollControllerPointerEntered(bool isForHorizontalScrollController)
     {
         throw new NotImplementedException();
@@ -776,7 +783,21 @@ public class ScrollView : Control
 
     private void OnPropertyChanged(DependencyPropertyChangedEventArgs args)
     {
-        throw new NotImplementedException();
+        DependencyProperty dependencyProperty = args.Property;
+
+        bool horizontalChange = dependencyProperty == HorizontalScrollBarVisibilityProperty;
+        bool verticalChange = dependencyProperty == VerticalScrollBarVisibilityProperty;
+
+        if (horizontalChange || verticalChange)
+        {
+            UpdateScrollControllersVisibility(horizontalChange, verticalChange);
+            UpdateVisualStates(
+                useTransitions: true,
+                showIndicators: false,
+                hideIndicators: false,
+                scrollControllersAutoHidingChanged: false,
+                updateScrollControllersAutoHiding: true);
+        }
     }
 
     private void OnScrollPresenterExtentChanged(object sender, object args)
@@ -865,6 +886,11 @@ public class ScrollView : Control
     }
 
     private void UnhookVerticalScrollControllerEvents(bool isForDestructor)
+    {
+        throw new NotImplementedException();
+    }
+
+    private void UpdateScrollControllersVisibility(bool horizontalChange, bool verticalChange)
     {
         throw new NotImplementedException();
     }
