@@ -2,6 +2,7 @@
 using System;
 using System.Numerics;
 using Windows.UI.Xaml.Controls;
+using Windows.UI.Xaml.Input;
 
 namespace Microsoft.UI.Xaml.Controls;
 
@@ -206,6 +207,26 @@ public class ScrollView : Control
     /// <param name="options">Options that specify whether or not animations are enabled and snap points are respected.</param>
     /// <returns>A correlation ID number used to associate this method call with corresponding events.</returns>
     public int ZoomBy(float zoomFactorDelta, Vector2? centerPoint, ScrollingZoomOptions options)
+    {
+        throw new NotImplementedException();
+    }
+
+    private void OnHideIndicatorsTimerTick(object sender, object args)
+    {
+        throw new NotImplementedException();
+    }
+
+    private void OnHorizontalScrollControllerPointerEntered(object sender, PointerRoutedEventArgs args)
+    {
+        throw new NotImplementedException();
+    }
+
+    private void OnScrollViewPointerMoved(object sender, PointerRoutedEventArgs args)
+    {
+        throw new NotImplementedException();
+    }
+
+    private void OnVerticalScrollControllerPointerExited(object sender, PointerRoutedEventArgs args)
     {
         throw new NotImplementedException();
     }
