@@ -111,24 +111,12 @@ public class ScrollView : Control
     /// <summary>
     /// Gets the most recently chosen <see cref="UIElement"/> for scroll anchoring after a layout pass, if any.
     /// </summary>
-    public UIElement? CurrentAnchor
-    {
-        get
-        {
-            throw new NotImplementedException();
-        }
-    }
+    public UIElement? CurrentAnchor => (_scrollPresenter as IScrollAnchorProvider)?.CurrentAnchor;
 
     /// <summary>
     /// Gets a <see cref="CompositionPropertySet"/> of scrolling related property values.
     /// </summary>
-    public CompositionPropertySet ExpressionAnimationSources
-    {
-        get
-        {
-            throw new NotImplementedException();
-        }
-    }
+    public CompositionPropertySet? ExpressionAnimationSources => _scrollPresenter?.ExpressionAnimationSources;
 
     /// <summary>
     /// Gets the vertical size of all the scrollable content in the <see cref="ScrollView"/>.
@@ -264,6 +252,29 @@ public class ScrollView : Control
     /// Gets a value that indicates the amount of scaling currently applied to content.
     /// </summary>
     public float ZoomFactor => _scrollPresenter?.ZoomFactor ?? 0;
+
+    /// <summary>
+    /// Asynchronously adds velocity to a scroll action.
+    /// </summary>
+    /// <param name="offsetsVelocity">The rate of the scroll offset change.</param>
+    /// <param name="inertiaDecayRate">The decay rate of the inertia.</param>
+    /// <returns>A correlation ID number used to associate this method call with corresponding events.</returns>
+    public int AddScrollVelocity(Vector2 offsetsVelocity, Vector2? inertiaDecayRate)
+    {
+        throw new NotImplementedException();
+    }
+
+    /// <summary>
+    /// Asynchronously adds velocity to a zoom action.
+    /// </summary>
+    /// <param name="zoomFactorVelocity">The rate of the zoom factor change.</param>
+    /// <param name="centerPoint">The center point of the zoom factor change.</param>
+    /// <param name="inertiaDecayRate">The decay rate of the inertia.</param>
+    /// <returns>A correlation ID number used to associate this method call with corresponding events.</returns>
+    public int AddZoomVelocity(float zoomFactorVelocity, Vector2? centerPoint, float? inertiaDecayRate)
+    {
+        throw new NotImplementedException();
+    }
 
     /// <summary>
     /// Asynchronously scrolls by the specified delta amount with animations enabled and snap points respected.
