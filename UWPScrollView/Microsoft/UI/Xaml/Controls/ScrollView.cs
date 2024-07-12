@@ -10,6 +10,21 @@ namespace Microsoft.UI.Xaml.Controls;
 public class ScrollView : Control
 {
     /// <summary>
+    /// Gets or sets a value that determines how manipulation input influences scrolling behavior on the horizontal axis.
+    /// </summary>
+    public ScrollingScrollMode HorizontalScrollMode
+    {
+        get
+        {
+            throw new NotImplementedException();
+        }
+        set
+        {
+            throw new NotImplementedException();
+        }
+    }
+
+    /// <summary>
     /// Asynchronously zooms by the specified delta amount with animations enabled and snap point respected.
     /// </summary>
     /// <param name="zoomFactorDelta">The amount by which to change the zoom factor.</param>
