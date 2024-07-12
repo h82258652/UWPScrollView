@@ -326,6 +326,11 @@ public class ScrollView : Control
 
     private void GoToState(string stateName, bool useTransitions = true)
     {
+        VisualStateManager.GoToState(this, stateName, useTransitions);
+    }
+
+    private void HandleScrollControllerPointerEntered(bool isForHorizontalScrollController)
+    {
         throw new NotImplementedException();
     }
 
