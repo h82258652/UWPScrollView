@@ -1,8 +1,8 @@
 ﻿using Microsoft.UI.Xaml.Controls.Primitives;
 using System;
 using System.Numerics;
-using System.Reflection;
 using Windows.Devices.Input;
+using Windows.Foundation;
 using Windows.System;
 using Windows.UI.Composition;
 using Windows.UI.Xaml;
@@ -16,7 +16,7 @@ namespace Microsoft.UI.Xaml.Controls;
 /// </summary>
 public class ScrollView : Control
 {
-    public static readonly DependencyProperty ComputedHorizontalScrollBarVisibilityProperty;
+    public static readonly DependencyProperty ComputedHorizontalScrollBarVisibilityProperty = DependencyProperty.Register(nameof(ComputedHorizontalScrollBarVisibility), typeof(Visibility), typeof(ScrollView), new PropertyMetadata(Visibility.Collapsed, OnComputedHorizontalScrollBarVisibilityPropertyChanged));
 
     public static readonly DependencyProperty ComputedHorizontalScrollModeProperty;
 
@@ -54,7 +54,10 @@ public class ScrollView : Control
     /// </summary>
     public static readonly DependencyProperty MinZoomFactorProperty = DependencyProperty.Register(nameof(MinZoomFactor), typeof(double), typeof(ScrollView), new PropertyMetadata(0.1d, OnMinZoomFactorPropertyChanged));
 
-    public static readonly DependencyProperty VerticalScrollModeProperty;
+    /// <summary>
+    /// Identifies the <see cref="VerticalScrollMode"/> dependency property.
+    /// </summary>
+    public static readonly DependencyProperty VerticalScrollModeProperty = DependencyProperty.Register(nameof(VerticalScrollMode), typeof(ScrollingScrollMode), typeof(ScrollView), new PropertyMetadata(ScrollingScrollMode.Auto, OnVerticalScrollModePropertyChanged));
 
     /// <summary>
     /// Identifies the <see cref="ZoomChainMode"/> dependency property.
@@ -94,9 +97,19 @@ public class ScrollView : Control
 
     private bool m_isLeftMouseButtonPressedForFocus = false;
 
+    /// <summary>
+    /// Set to True to prevent the normal fade-out of the scrolling indicators.
+    /// </summary>
+    private bool m_keepIndicatorsShowing = false;
+
     private bool m_preferMouseIndicators = false;
 
     private UIElement m_scrollControllersSeparatorElement;
+
+    /// <summary>
+    /// Set to True when the mouse scrolling indicators are currently showing.
+    /// </summary>
+    private bool m_showingMouseIndicators = false;
 
     private IScrollController m_verticalScrollController;
 
@@ -109,6 +122,16 @@ public class ScrollView : Control
     {
         throw new NotImplementedException();
     }
+
+    /// <summary>
+    /// Occurs when either the <see cref="ExtentWidth"/> or <see cref="ExtentHeight"/> properties has changed.
+    /// </summary>
+    public event TypedEventHandler<ScrollView, object> ExtentChanged;
+
+    /// <summary>
+    /// Occurs when the current interaction state of the control has changed.
+    /// </summary>
+    public event TypedEventHandler<ScrollView, object> StateChanged;
 
     /// <summary>
     /// Gets a value that indicates the effective visibility of the horizontal scrollbar.
@@ -491,6 +514,11 @@ public class ScrollView : Control
             onlyForAutoHidingScrollControllers: true);
     }
 
+    private static void OnComputedHorizontalScrollBarVisibilityPropertyChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+    {
+        throw new NotImplementedException();
+    }
+
     private static void OnComputedVerticalScrollBarVisibilityPropertyChanged(DependencyObject sender, DependencyPropertyChangedEventArgs args)
     {
         ScrollView owner = (ScrollView)sender;
@@ -520,6 +548,11 @@ public class ScrollView : Control
     }
 
     private static void OnMinZoomFactorPropertyChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+    {
+        throw new NotImplementedException();
+    }
+
+    private static void OnVerticalScrollModePropertyChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
     {
         throw new NotImplementedException();
     }
@@ -657,6 +690,16 @@ public class ScrollView : Control
     }
 
     private void OnPropertyChanged(DependencyPropertyChangedEventArgs args)
+    {
+        throw new NotImplementedException();
+    }
+
+    private void OnScrollPresenterExtentChanged(object sender, object args)
+    {
+        throw new NotImplementedException();
+    }
+
+    private void OnScrollPresenterStateChanged(object sender, object args)
     {
         throw new NotImplementedException();
     }
