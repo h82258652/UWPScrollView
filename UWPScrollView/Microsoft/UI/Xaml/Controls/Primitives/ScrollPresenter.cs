@@ -459,7 +459,7 @@ public class ScrollPresenter : FrameworkElement, IScrollAnchorProvider
     /// <returns>A correlation ID number used to associate this method call with corresponding events.</returns>
     public int ZoomBy(float zoomFactorDelta, Vector2? centerPoint)
     {
-        throw new NotImplementedException();
+        return ZoomBy(zoomFactorDelta, centerPoint, null);
     }
 
     /// <summary>
@@ -469,7 +469,7 @@ public class ScrollPresenter : FrameworkElement, IScrollAnchorProvider
     /// <param name="centerPoint">The center point of the zoom factor change.</param>
     /// <param name="options">Options that specify whether or not animations are enabled and snap points are respected.</param>
     /// <returns>A correlation ID number used to associate this method call with corresponding events.</returns>
-    public int ZoomBy(float zoomFactorDelta, Vector2? centerPoint, ScrollingZoomOptions options)
+    public int ZoomBy(float zoomFactorDelta, Vector2? centerPoint, ScrollingZoomOptions? options)
     {
         throw new NotImplementedException();
     }
@@ -482,7 +482,7 @@ public class ScrollPresenter : FrameworkElement, IScrollAnchorProvider
     /// <returns>A correlation ID number used to associate this method call with corresponding events.</returns>
     public int ZoomTo(float zoomFactor, Vector2? centerPoint)
     {
-        throw new NotImplementedException();
+        return ZoomTo(zoomFactor, centerPoint, null);
     }
 
     /// <summary>
@@ -492,7 +492,7 @@ public class ScrollPresenter : FrameworkElement, IScrollAnchorProvider
     /// <param name="centerPoint">The center point of the zoom factor change.</param>
     /// <param name="options">Options that specify whether or not animations are enabled and snap points are respected.</param>
     /// <returns>A correlation ID number used to associate this method call with corresponding events.</returns>
-    public int ZoomTo(float zoomFactor, Vector2? centerPoint, ScrollingZoomOptions options)
+    public int ZoomTo(float zoomFactor, Vector2? centerPoint, ScrollingZoomOptions? options)
     {
         throw new NotImplementedException();
     }
