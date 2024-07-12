@@ -540,6 +540,11 @@ public class ScrollPresenter : FrameworkElement, IScrollAnchorProvider
         throw new NotImplementedException();
     }
 
+    private void EnsureExpressionAnimationSources()
+    {
+        throw new NotImplementedException();
+    }
+
     private void OnFlowDirectionChanged(DependencyObject sender, DependencyProperty args)
     {
         throw new NotImplementedException();
@@ -566,6 +571,11 @@ public class ScrollPresenter : FrameworkElement, IScrollAnchorProvider
     }
 
     private void ResetAnchorElement()
+    {
+        throw new NotImplementedException();
+    }
+
+    private void SetupInteractionTrackerBoundaries()
     {
         throw new NotImplementedException();
     }
