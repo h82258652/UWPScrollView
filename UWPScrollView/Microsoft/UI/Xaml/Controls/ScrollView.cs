@@ -1,6 +1,7 @@
 ﻿using Microsoft.UI.Xaml.Controls.Primitives;
 using System;
 using System.Numerics;
+using Windows.System;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
 using Windows.UI.Xaml.Input;
@@ -20,6 +21,12 @@ public class ScrollView : Control
     private const string s_scrollPresenterPartName = "PART_ScrollPresenter";
     private const string s_verticalScrollBarPartName = "PART_VerticalScrollBar";
     private ScrollPresenter? _scrollPresenter;
+    private DispatcherTimer m_hideIndicatorsTimer;
+    private IScrollController m_horizontalScrollController;
+    private UIElement m_horizontalScrollControllerElement;
+    private UIElement m_scrollControllersSeparatorElement;
+    private IScrollController m_verticalScrollController;
+    private UIElement m_verticalScrollControllerElement;
 
     /// <summary>
     /// Gets or sets the content that can be scrolled, panned, or zoomed.
@@ -247,6 +254,16 @@ public class ScrollView : Control
         throw new NotImplementedException();
     }
 
+    private bool CanScrollHorizontallyInDirection(bool inPositiveDirection)
+    {
+        throw new NotImplementedException();
+    }
+
+    private bool CanScrollInDirection(FocusNavigationDirection drection)
+    {
+        throw new NotImplementedException();
+    }
+
     private bool CanScrollLeft()
     {
         throw new NotImplementedException();
@@ -267,12 +284,12 @@ public class ScrollView : Control
         throw new NotImplementedException();
     }
 
-    private bool CanScrollHorizontallyInDirection(bool inPositiveDirection)
+    private void DoScroll(double offsetAmount, Orientation orientation)
     {
         throw new NotImplementedException();
     }
 
-    private bool CanScrollInDirection(FocusNavigationDirection drection)
+    private bool DoScrollForKey(VirtualKey key, double scrollProportion)
     {
         throw new NotImplementedException();
     }
