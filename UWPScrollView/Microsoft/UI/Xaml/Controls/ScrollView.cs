@@ -3,6 +3,7 @@ using System;
 using System.Numerics;
 using Windows.Devices.Input;
 using Windows.System;
+using Windows.UI.Composition;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
 using Windows.UI.Xaml.Input;
@@ -118,6 +119,17 @@ public class ScrollView : Control
     }
 
     /// <summary>
+    /// Gets a <see cref="CompositionPropertySet"/> of scrolling related property values.
+    /// </summary>
+    public CompositionPropertySet ExpressionAnimationSources
+    {
+        get
+        {
+            throw new NotImplementedException();
+        }
+    }
+
+    /// <summary>
     /// Gets the vertical size of all the scrollable content in the <see cref="ScrollView"/>.
     /// </summary>
     public double ExtentHeight => _scrollPresenter?.ExtentHeight ?? 0;
@@ -125,13 +137,7 @@ public class ScrollView : Control
     /// <summary>
     /// Gets the horizontal size of all the scrollable content in the ScrollView.
     /// </summary>
-    public double ExtentWidth
-    {
-        get
-        {
-            throw new NotImplementedException();
-        }
-    }
+    public double ExtentWidth => _scrollPresenter?.ExtentWidth ?? 0;
 
     /// <summary>
     /// Gets or sets a value that determines how manipulation input influences scrolling behavior on the horizontal axis.
