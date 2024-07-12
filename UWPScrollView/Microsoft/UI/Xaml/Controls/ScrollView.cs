@@ -1,7 +1,6 @@
 ﻿using Microsoft.UI.Xaml.Controls.Primitives;
 using System;
 using System.Numerics;
-using System.Reflection;
 using Windows.Devices.Input;
 using Windows.Foundation;
 using Windows.System;
@@ -298,10 +297,7 @@ public class ScrollView : Control
     /// </summary>
     public double HorizontalAnchorRatio
     {
-        get
-        {
-            return (double)GetValue(HorizontalAnchorRatioProperty);
-        }
+        get => (double)GetValue(HorizontalAnchorRatioProperty);
         set
         {
             ValidateAnchorRatio(value);
@@ -310,18 +306,42 @@ public class ScrollView : Control
     }
 
     /// <summary>
+    /// Gets or sets a value that indicates whether a scroll controller should be displayed for the horizontal scrolling direction.
+    /// </summary>
+    public ScrollingScrollBarVisibility HorizontalScrollBarVisibility
+    {
+        get
+        {
+            throw new NotImplementedException();
+        }
+        set
+        {
+            throw new NotImplementedException();
+        }
+    }
+
+    /// <summary>
+    /// Gets or sets a value that indicates whether or not to chain horizontal scrolling to an outer scroll control.
+    /// </summary>
+    public ScrollingChainMode HorizontalScrollChainMode
+    {
+        get
+        {
+            throw new NotImplementedException();
+        }
+        set
+        {
+            throw new NotImplementedException();
+        }
+    }
+
+    /// <summary>
     /// Gets or sets a value that determines how manipulation input influences scrolling behavior on the horizontal axis.
     /// </summary>
     public ScrollingScrollMode HorizontalScrollMode
     {
-        get
-        {
-            return (ScrollingScrollMode)GetValue(HorizontalScrollModeProperty);
-        }
-        set
-        {
-            SetValue(HorizontalScrollModeProperty, value);
-        }
+        get => (ScrollingScrollMode)GetValue(HorizontalScrollModeProperty);
+        set => SetValue(HorizontalScrollModeProperty, value);
     }
 
     /// <summary>
@@ -764,6 +784,11 @@ public class ScrollView : Control
     private void HookVerticalScrollControllerEvents()
     {
         throw new NotImplementedException();
+    }
+
+    private bool IsInputKindIgnored(ScrollingInputKinds inputKind)
+    {
+        return (IgnoredInputKinds & inputKind) == inputKind;
     }
 
     private void OnCompositionTargetRendering(object sender, object args)
