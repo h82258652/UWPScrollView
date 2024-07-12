@@ -279,6 +279,11 @@ public class ScrollView : Control
         throw new NotImplementedException();
     }
 
+    private bool AreScrollControllersAutoHiding()
+    {
+        throw new NotImplementedException();
+    }
+
     private bool CanScrollDown()
     {
         throw new NotImplementedException();
@@ -289,7 +294,7 @@ public class ScrollView : Control
         throw new NotImplementedException();
     }
 
-    private bool CanScrollInDirection(FocusNavigationDirection drection)
+    private bool CanScrollInDirection(FocusNavigationDirection direction)
     {
         throw new NotImplementedException();
     }
