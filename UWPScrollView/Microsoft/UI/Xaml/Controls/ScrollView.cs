@@ -43,13 +43,7 @@ public class ScrollView : Control
     /// <summary>
     /// Gets the vertical size of all the scrollable content in the <see cref="ScrollView"/>.
     /// </summary>
-    public double ExtentHeight
-    {
-        get
-        {
-            throw new NotImplementedException();
-        }
-    }
+    public double ExtentHeight => _scrollPresenter?.ExtentHeight ?? 0;
 
     /// <summary>
     /// Gets the horizontal size of all the scrollable content in the ScrollView.
