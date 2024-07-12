@@ -55,6 +55,58 @@ public class ScrollView : Control
     }
 
     /// <summary>
+    /// Gets or sets a value that determines how manipulation input influences scrolling behavior on the horizontal axis.
+    /// </summary>
+    public ScrollingScrollMode VerticalScrollMode
+    {
+        get
+        {
+            throw new NotImplementedException();
+        }
+        set
+        {
+            throw new NotImplementedException();
+        }
+    }
+
+    /// <summary>
+    /// Gets the vertical size of the viewable content in the <see cref="ScrollView"/>.
+    /// </summary>
+    public double ViewportHeight
+    {
+        get
+        {
+            throw new NotImplementedException();
+        }
+    }
+
+    /// <summary>
+    /// Gets the horizontal size of the viewable content in the <see cref="ScrollView"/>.
+    /// </summary>
+    public double ViewportWidth
+    {
+        get
+        {
+            throw new NotImplementedException();
+        }
+    }
+
+    /// <summary>
+    /// Gets or sets a value that indicates whether or not to chain zooming to an outer scroll control.
+    /// </summary>
+    public ScrollingChainMode ZoomChainMode
+    {
+        get
+        {
+            throw new NotImplementedException();
+        }
+        set
+        {
+            throw new NotImplementedException();
+        }
+    }
+
+    /// <summary>
     /// Gets a value that indicates the amount of scaling currently applied to content.
     /// </summary>
     public float ZoomFactor
