@@ -118,6 +118,29 @@ public class ScrollView : Control
     }
 
     /// <summary>
+    /// Asynchronously scrolls by the specified delta amount with animations enabled and snap points respected.
+    /// </summary>
+    /// <param name="horizontalOffsetDelta">The offset to scroll by horizontally.</param>
+    /// <param name="verticalOffsetDelta">The offset to scroll by vertically.</param>
+    /// <returns>A correlation ID number used to associate this method call with corresponding events.</returns>
+    public int ScrollBy(double horizontalOffsetDelta, double verticalOffsetDelta)
+    {
+        throw new NotImplementedException();
+    }
+
+    /// <summary>
+    /// Asynchronously scrolls by the specified delta amount with the specified animation and snap point modes.
+    /// </summary>
+    /// <param name="horizontalOffsetDelta">The offset to scroll by horizontally.</param>
+    /// <param name="verticalOffsetDelta">The offset to scroll by vertically.</param>
+    /// <param name="options">Options that specify whether or not animations are enabled and snap points are respected.</param>
+    /// <returns>A correlation ID number used to associate this method call with corresponding events.</returns>
+    public int ScrollBy(double horizontalOffsetDelta, double verticalOffsetDelta, ScrollingScrollOptions options)
+    {
+        throw new NotImplementedException();
+    }
+
+    /// <summary>
     /// Asynchronously zooms by the specified delta amount with animations enabled and snap point respected.
     /// </summary>
     /// <param name="zoomFactorDelta">The amount by which to change the zoom factor.</param>
