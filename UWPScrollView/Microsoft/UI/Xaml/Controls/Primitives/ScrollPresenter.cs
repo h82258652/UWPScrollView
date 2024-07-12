@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Numerics;
 using Windows.Foundation;
 using Windows.UI.Composition;
+using Windows.UI.Composition.Interactions;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
 using Windows.UI.Xaml.Input;
@@ -15,19 +16,75 @@ namespace Microsoft.UI.Xaml.Controls.Primitives;
 /// Represents a primitive container that provides scroll, pan, and zoom support for its content.
 /// </summary>
 [ContentProperty(Name = nameof(Content))]
-public class ScrollPresenter : FrameworkElement, IScrollAnchorProvider
+public class ScrollPresenter : Panel, IScrollAnchorProvider
 {
+    /// <summary>
+    /// Identifies the <see cref="ComputedHorizontalScrollMode"/> dependency property.
+    /// </summary>
+    public static readonly DependencyProperty ComputedHorizontalScrollModeProperty;
+
+    /// <summary>
+    /// Identifies the <see cref="ComputedVerticalScrollMode"/> dependency property.
+    /// </summary>
+    public static readonly DependencyProperty ComputedVerticalScrollModeProperty;
+
+    /// <summary>
+    /// Identifies the <see cref="ContentOrientation"/> dependency property.
+    /// </summary>
+    public static readonly DependencyProperty ContentOrientationProperty;
+
+    /// <summary>
+    /// Identifies the <see cref="Content"/> dependency property.
+    /// </summary>
+    public static readonly DependencyProperty ContentProperty;
+
+    public static readonly DependencyProperty HorizontalAnchorRatioProperty;
+
+    public static readonly DependencyProperty HorizontalScrollChainModeProperty;
+
+    public static readonly DependencyProperty VerticalAnchorRatioProperty;
+
+    public static readonly DependencyProperty VerticalScrollChainModeProperty;
+
+    /// <summary>
+    /// Identifies the <see cref="VerticalScrollRailMode"/> dependency property.
+    /// </summary>
+    public static readonly DependencyProperty VerticalScrollRailModeProperty;
+
+    /// <summary>
+    /// Identifies the <see cref="ZoomMode"/> dependency property.
+    /// </summary>
+    public static readonly DependencyProperty ZoomModeProperty;
+
+    /// <summary>
+    /// Identifies the <see cref="ZoomChainMode"/> dependency property.
+    /// </summary>
+    public static DependencyProperty ZoomChainModeProperty;
+
+    private UIElement m_anchorElement;
+    private Rect m_anchorElementBounds;
     private float m_animationRestartZoomFactor = 1;
 
+    private Size m_availableSize;
     private float m_contentLayoutOffsetX;
 
     private float m_contentLayoutOffsetY;
 
+    private ScrollingContentOrientation m_contentOrientation = ScrollingContentOrientation.Both;
     private Vector2 m_endOfInertiaPosition;
 
     private float m_endOfInertiaZoomFactor = 1;
 
     private CompositionPropertySet m_expressionAnimationSources;
+    private InteractionTracker m_interactionTracker;
+
+    /// <summary>
+    /// False when m_anchorElement is up-to-date, True otherwise.
+    /// </summary>
+    private bool m_isAnchorElementDirty = true;
+
+    private ExpressionAnimation m_maxPositionExpressionAnimation;
+    private ExpressionAnimation m_minPositionExpressionAnimation;
     private ScrollingInteractionState m_state = ScrollingInteractionState.Idle;
     private double m_unzoomedExtentHeight;
 
@@ -52,6 +109,31 @@ public class ScrollPresenter : FrameworkElement, IScrollAnchorProvider
     }
 
     /// <summary>
+    /// Occurs when the <see cref="ScrollView"/> is about to select an anchor element.
+    /// </summary>
+    public event TypedEventHandler<ScrollPresenter, ScrollingAnchorRequestedEventArgs> AnchorRequested;
+
+    /// <summary>
+    /// Occurs at the beginning of a bring-into-view request participation. Allows customization of that participation.
+    /// </summary>
+    public event TypedEventHandler<ScrollPresenter, ScrollingBringingIntoViewEventArgs> BringingIntoView;
+
+    /// <summary>
+    /// Occurs when either the <see cref="ExtentWidth"/> or <see cref="ExtentHeight"/> properties has changed.
+    /// </summary>
+    public event TypedEventHandler<ScrollPresenter, object> ExtentChanged;
+
+    /// <summary>
+    /// Occurs when a call to <see cref="ScrollTo"/> or <see cref="ScrollBy"/> triggers an animation.
+    /// </summary>
+    public event TypedEventHandler<ScrollPresenter, ScrollingScrollAnimationStartingEventArgs> ScrollAnimationStarting;
+
+    /// <summary>
+    /// Occurs when a <see cref="ScrollTo"/>, <see cref="ScrollBy"/>, or <see cref="AddScrollVelocity"/> asynchronous operation ends. Provides the original correlation ID.
+    /// </summary>
+    public event TypedEventHandler<ScrollPresenter, ScrollingScrollCompletedEventArgs> ScrollCompleted;
+
+    /// <summary>
     /// Occurs when the current interaction state of the control has changed.
     /// </summary>
     public event TypedEventHandler<ScrollPresenter, object> StateChanged;
@@ -60,6 +142,16 @@ public class ScrollPresenter : FrameworkElement, IScrollAnchorProvider
     /// Occurs when manipulations such as scrolling and zooming have caused the view to change.
     /// </summary>
     public event TypedEventHandler<ScrollPresenter, object> ViewChanged;
+
+    /// <summary>
+    /// Occurs when a call to <see cref="ZoomTo"/> or <see cref="ZoomBy"/> triggers an animation.
+    /// </summary>
+    public event TypedEventHandler<ScrollPresenter, ScrollingZoomAnimationStartingEventArgs> ZoomAnimationStarting;
+
+    /// <summary>
+    /// Occurs when a <see cref="ZoomTo"/>, <see cref="ZoomBy"/>, or <see cref="AddZoomVelocity"/> asynchronous operation ends. Provides the original correlation ID.
+    /// </summary>
+    public event TypedEventHandler<ScrollPresenter, ScrollingZoomCompletedEventArgs> ZoomCompleted;
 
     /// <summary>
     /// Gets or sets a brush that provides the background of the <see cref="ScrollPresenter"/>.
@@ -103,14 +195,8 @@ public class ScrollPresenter : FrameworkElement, IScrollAnchorProvider
     /// </summary>
     public UIElement? Content
     {
-        get
-        {
-            throw new NotImplementedException();
-        }
-        set
-        {
-            throw new NotImplementedException();
-        }
+        get => (UIElement?)GetValue(ContentProperty);
+        set => SetValue(ContentProperty, value);
     }
 
     /// <summary>
@@ -118,14 +204,8 @@ public class ScrollPresenter : FrameworkElement, IScrollAnchorProvider
     /// </summary>
     public ScrollingContentOrientation ContentOrientation
     {
-        get
-        {
-            throw new NotImplementedException();
-        }
-        set
-        {
-            throw new NotImplementedException();
-        }
+        get => (ScrollingContentOrientation)GetValue(ContentOrientationProperty);
+        set => SetValue(ContentOrientationProperty, value);
     }
 
     /// <summary>
@@ -540,6 +620,11 @@ public class ScrollPresenter : FrameworkElement, IScrollAnchorProvider
         }
     }
 
+    internal static void ValidateZoomFactoryBoundary(double value)
+    {
+        throw new NotImplementedException();
+    }
+
     /// <inheritdoc/>
     protected override Size ArrangeOverride(Size finalSize)
     {
@@ -549,7 +634,50 @@ public class ScrollPresenter : FrameworkElement, IScrollAnchorProvider
     /// <inheritdoc/>
     protected override Size MeasureOverride(Size availableSize)
     {
-        throw new NotImplementedException();
+        m_availableSize = availableSize;
+
+        Size contentDesiredSize = new Size(0.0f, 0.0f);
+        UIElement content = Content;
+
+        if (content is not null)
+        {
+            // The content is measured with infinity in the directions in which it is not constrained, enabling this ScrollPresenter
+            // to be scrollable in those directions.
+            Size contentAvailableSize = new Size(
+                (m_contentOrientation == ScrollingContentOrientation.Vertical || m_contentOrientation == ScrollingContentOrientation.None) ?
+                    availableSize.Width : double.PositiveInfinity,
+            (m_contentOrientation == ScrollingContentOrientation.Horizontal || m_contentOrientation == ScrollingContentOrientation.None) ?
+                availableSize.Height : double.PositiveInfinity
+        );
+
+            if (m_contentOrientation != ScrollingContentOrientation.Both)
+            {
+                FrameworkElement contentAsFE = content as FrameworkElement;
+
+                if (contentAsFE is not null)
+                {
+                    Thickness contentMargin = contentAsFE.Margin;
+
+                    if (m_contentOrientation == ScrollingContentOrientation.Vertical || m_contentOrientation == ScrollingContentOrientation.None)
+                    {
+                        // Even though the content's Width is constrained, take into account the MinWidth, Width and MaxWidth values
+                        // potentially set on the content so it is allowed to grow accordingly.
+                        contentAvailableSize.Width = (float)(GetComputedMaxWidth(availableSize.Width, contentAsFE));
+                    }
+                    if (m_contentOrientation == ScrollingContentOrientation.Horizontal || m_contentOrientation == ScrollingContentOrientation.None)
+                    {
+                        // Even though the content's Height is constrained, take into account the MinHeight, Height and MaxHeight values
+                        // potentially set on the content so it is allowed to grow accordingly.
+                        contentAvailableSize.Height = (float)(GetComputedMaxHeight(availableSize.Height, contentAsFE));
+                    }
+                }
+            }
+
+            content.Measure(contentAvailableSize);
+            contentDesiredSize = content.DesiredSize;
+        }
+
+        return contentDesiredSize;
     }
 
     private static bool IsAnchorRatioValid(double value)
@@ -557,7 +685,34 @@ public class ScrollPresenter : FrameworkElement, IScrollAnchorProvider
         return double.IsNaN(value) || (!double.IsInfinity(value) && value >= 0 && value <= 1);
     }
 
+    private void CustomAnimationStateEntered(InteractionTrackerCustomAnimationStateEnteredArgs args)
+    {
+        throw new NotImplementedException();
+    }
+
     private void EnsureExpressionAnimationSources()
+    {
+        throw new NotImplementedException();
+    }
+
+    private void EnsureInteractionTracker()
+    { throw new NotImplementedException(); }
+
+    private void EnsurePositionBoundariesExpressionAnimations()
+    {
+        throw new NotImplementedException();
+    }
+
+    private double GetComputedMaxHeight(
+        double defaultMaxHeight,
+        FrameworkElement content)
+    {
+        throw new NotImplementedException();
+    }
+
+    private double GetComputedMaxWidth(
+                               double defaultMaxWidth,
+            FrameworkElement content)
     {
         throw new NotImplementedException();
     }
@@ -577,6 +732,11 @@ public class ScrollPresenter : FrameworkElement, IScrollAnchorProvider
         throw new NotImplementedException();
     }
 
+    private void OnPropertyChanged(DependencyPropertyChangedEventArgs args)
+    {
+        throw new NotImplementedException();
+    }
+
     private void OnUnloaded(object sender, RoutedEventArgs args)
     {
         throw new NotImplementedException();
@@ -592,7 +752,36 @@ public class ScrollPresenter : FrameworkElement, IScrollAnchorProvider
         throw new NotImplementedException();
     }
 
+    private void UpdateContent(UIElement oldContent, UIElement newContent)
+    {
+        throw new NotImplementedException();
+    }
+
     private void SetupInteractionTrackerBoundaries()
+    {
+        if (m_interactionTracker is null)
+        {
+            EnsureInteractionTracker();
+            SetupInteractionTrackerZoomFactorBoundaries(
+                MinZoomFactor,
+                MaxZoomFactor);
+        }
+
+        UIElement content = Content;
+
+        if (content is not null && (m_minPositionExpressionAnimation is null || m_maxPositionExpressionAnimation is null))
+        {
+            EnsurePositionBoundariesExpressionAnimations();
+            SetupPositionBoundariesExpressionAnimations(content);
+        }
+    }
+
+    private void SetupInteractionTrackerZoomFactorBoundaries(
+            double minZoomFactor, double maxZoomFactor)
+    { throw new NotImplementedException(); }
+
+    private void SetupPositionBoundariesExpressionAnimations(
+            UIElement content)
     {
         throw new NotImplementedException();
     }

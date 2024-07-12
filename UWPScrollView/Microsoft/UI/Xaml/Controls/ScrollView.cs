@@ -147,9 +147,22 @@ public class ScrollView : Control
         new PropertyMetadata(0.1d, OnMinZoomFactorPropertyChanged));
 
     /// <summary>
+    /// Identifies the <see cref="ScrollPresenter"/> dependency property.
+    /// </summary>
+    public static readonly DependencyProperty ScrollPresenterProperty = DependencyProperty.Register(
+        nameof(ScrollPresenter),
+        typeof(ScrollPresenter),
+        typeof(ScrollView),
+        new PropertyMetadata(null, OnScrollPresenterPropertyChanged));
+
+    /// <summary>
     /// Identifies the <see cref="VerticalAnchorRatio"/> dependency property.
     /// </summary>
-    public static readonly DependencyProperty VerticalAnchorRatioProperty;
+    public static readonly DependencyProperty VerticalAnchorRatioProperty = DependencyProperty.Register(
+        nameof(VerticalAnchorRatio),
+        typeof(double),
+        typeof(ScrollView),
+        new PropertyMetadata(0d, OnVerticalAnchorRatioPropertyChanged));
 
     /// <summary>
     /// Identifies the <see cref="VerticalScrollBarVisibility"/> dependency property.
@@ -163,7 +176,11 @@ public class ScrollView : Control
     /// <summary>
     /// Identifies the <see cref="VerticalScrollChainMode"/> dependency property.
     /// </summary>
-    public static readonly DependencyProperty VerticalScrollChainModeProperty;
+    public static readonly DependencyProperty VerticalScrollChainModeProperty = DependencyProperty.Register(
+        nameof(VerticalScrollChainMode),
+        typeof(ScrollingChainMode),
+        typeof(ScrollView),
+        new PropertyMetadata(ScrollingChainMode.Auto, OnVerticalScrollChainModePropertyChanged));
 
     /// <summary>
     /// Identifies the <see cref="VerticalScrollMode"/> dependency property.
@@ -177,7 +194,11 @@ public class ScrollView : Control
     /// <summary>
     /// Identifies the <see cref="VerticalScrollRailMode"/> dependency property.
     /// </summary>
-    public static readonly DependencyProperty VerticalScrollRailModeProperty;
+    public static readonly DependencyProperty VerticalScrollRailModeProperty = DependencyProperty.Register(
+        nameof(VerticalScrollRailMode),
+        typeof(ScrollingRailMode),
+        typeof(ScrollView),
+        new PropertyMetadata(ScrollingRailMode.Enabled, OnVerticalScrollRailModePropertyChanged));
 
     /// <summary>
     /// Identifies the <see cref="ZoomChainMode"/> dependency property.
@@ -272,6 +293,10 @@ public class ScrollView : Control
     private bool m_preferMouseIndicators = false;
 
     private UIElement m_scrollControllersSeparatorElement;
+
+    private long m_scrollPresenterComputedHorizontalScrollModeChangedToken;
+
+    private long m_scrollPresenterComputedVerticalScrollModeChangedToken;
 
     /// <summary>
     /// Set to True when the mouse scrolling indicators are currently showing.
@@ -533,10 +558,7 @@ public class ScrollView : Control
     /// </summary>
     public double VerticalAnchorRatio
     {
-        get
-        {
-            return (double)GetValue(VerticalAnchorRatioProperty);
-        }
+        get => (double)GetValue(VerticalAnchorRatioProperty);
         set
         {
             ValidateAnchorRatio(value);
@@ -554,14 +576,8 @@ public class ScrollView : Control
     /// </summary>
     public ScrollingScrollBarVisibility VerticalScrollBarVisibility
     {
-        get
-        {
-            return (ScrollingScrollBarVisibility)GetValue(VerticalScrollBarVisibilityProperty);
-        }
-        set
-        {
-            SetValue(VerticalScrollBarVisibilityProperty, value);
-        }
+        get => (ScrollingScrollBarVisibility)GetValue(VerticalScrollBarVisibilityProperty);
+        set => SetValue(VerticalScrollBarVisibilityProperty, value);
     }
 
     /// <summary>
@@ -569,14 +585,8 @@ public class ScrollView : Control
     /// </summary>
     public ScrollingChainMode VerticalScrollChainMode
     {
-        get
-        {
-            return (ScrollingChainMode)GetValue(VerticalScrollChainModeProperty);
-        }
-        set
-        {
-            SetValue(VerticalScrollChainModeProperty, value);
-        }
+        get => (ScrollingChainMode)GetValue(VerticalScrollChainModeProperty);
+        set => SetValue(VerticalScrollChainModeProperty, value);
     }
 
     /// <summary>
@@ -593,14 +603,8 @@ public class ScrollView : Control
     /// </summary>
     public ScrollingRailMode VerticalScrollRailMode
     {
-        get
-        {
-            return (ScrollingRailMode)GetValue(VerticalScrollRailModeProperty);
-        }
-        set
-        {
-            SetValue(VerticalScrollRailModeProperty, value);
-        }
+        get => (ScrollingRailMode)GetValue(VerticalScrollRailModeProperty);
+        set => SetValue(VerticalScrollRailModeProperty, value);
     }
 
     /// <summary>
@@ -951,9 +955,10 @@ public class ScrollView : Control
         owner.OnPropertyChanged(args);
     }
 
-    private static void OnComputedHorizontalScrollModePropertyChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+    private static void OnComputedHorizontalScrollModePropertyChanged(DependencyObject sender, DependencyPropertyChangedEventArgs args)
     {
-        throw new NotImplementedException();
+        ScrollView owner = (ScrollView)sender;
+        owner.OnPropertyChanged(args);
     }
 
     private static void OnComputedVerticalScrollBarVisibilityPropertyChanged(DependencyObject sender, DependencyPropertyChangedEventArgs args)
@@ -962,14 +967,16 @@ public class ScrollView : Control
         owner.OnPropertyChanged(args);
     }
 
-    private static void OnComputedVerticalScrollModePropertyChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+    private static void OnComputedVerticalScrollModePropertyChanged(DependencyObject sender, DependencyPropertyChangedEventArgs args)
     {
-        throw new NotImplementedException();
+        ScrollView owner = (ScrollView)sender;
+        owner.OnPropertyChanged(args);
     }
 
-    private static void OnContentOrientationPropertyChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+    private static void OnContentOrientationPropertyChanged(DependencyObject sender, DependencyPropertyChangedEventArgs args)
     {
-        throw new NotImplementedException();
+        ScrollView owner = (ScrollView)sender;
+        owner.OnPropertyChanged(args);
     }
 
     private static void OnContentPropertyChanged(DependencyObject sender, DependencyPropertyChangedEventArgs args)
@@ -980,27 +987,41 @@ public class ScrollView : Control
 
     private static void OnHorizontalAnchorRatioPropertyChanged(DependencyObject sender, DependencyPropertyChangedEventArgs args)
     {
-        throw new NotImplementedException();
+        var owner = (ScrollView)sender;
+
+        var value = (double)args.NewValue;
+        ValidateAnchorRatio(value);
+        if (double.IsNaN(value))
+        {
+            sender.SetValue(args.Property, 0d);
+            return;
+        }
+
+        owner.OnPropertyChanged(args);
     }
 
-    private static void OnHorizontalScrollBarVisibilityPropertyChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+    private static void OnHorizontalScrollBarVisibilityPropertyChanged(DependencyObject sender, DependencyPropertyChangedEventArgs args)
     {
-        throw new NotImplementedException();
+        ScrollView owner = (ScrollView)sender;
+        owner.OnPropertyChanged(args);
     }
 
-    private static void OnHorizontalScrollChainModePropertyChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+    private static void OnHorizontalScrollChainModePropertyChanged(DependencyObject sender, DependencyPropertyChangedEventArgs args)
     {
-        throw new NotImplementedException();
+        ScrollView owner = (ScrollView)sender;
+        owner.OnPropertyChanged(args);
     }
 
-    private static void OnHorizontalScrollModePropertyChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+    private static void OnHorizontalScrollModePropertyChanged(DependencyObject sender, DependencyPropertyChangedEventArgs args)
     {
-        throw new NotImplementedException();
+        ScrollView owner = (ScrollView)sender;
+        owner.OnPropertyChanged(args);
     }
 
-    private static void OnHorizontalScrollRailModePropertyChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+    private static void OnHorizontalScrollRailModePropertyChanged(DependencyObject sender, DependencyPropertyChangedEventArgs args)
     {
-        throw new NotImplementedException();
+        ScrollView owner = (ScrollView)sender;
+        owner.OnPropertyChanged(args);
     }
 
     private static void OnIgnoredInputKindsPropertyChanged(DependencyObject sender, DependencyPropertyChangedEventArgs args)
@@ -1019,12 +1040,35 @@ public class ScrollView : Control
         throw new NotImplementedException();
     }
 
-    private static void OnVerticalScrollBarVisibilityPropertyChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+    private static void OnScrollPresenterPropertyChanged(DependencyObject sender, DependencyPropertyChangedEventArgs args)
+    {
+        ScrollView owner = (ScrollView)sender;
+        owner.OnPropertyChanged(args);
+    }
+
+    private static void OnVerticalAnchorRatioPropertyChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
     {
         throw new NotImplementedException();
     }
 
+    private static void OnVerticalScrollBarVisibilityPropertyChanged(DependencyObject sender, DependencyPropertyChangedEventArgs args)
+    {
+        ScrollView owner = (ScrollView)sender;
+        owner.OnPropertyChanged(args);
+    }
+
+    private static void OnVerticalScrollChainModePropertyChanged(DependencyObject sender, DependencyPropertyChangedEventArgs args)
+    {
+        ScrollView owner = (ScrollView)sender;
+        owner.OnPropertyChanged(args);
+    }
+
     private static void OnVerticalScrollModePropertyChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+    {
+        throw new NotImplementedException();
+    }
+
+    private static void OnVerticalScrollRailModePropertyChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
     {
         throw new NotImplementedException();
     }
@@ -1034,9 +1078,10 @@ public class ScrollView : Control
         throw new NotImplementedException();
     }
 
-    private static void OnZoomModePropertyChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+    private static void OnZoomModePropertyChanged(DependencyObject sender, DependencyPropertyChangedEventArgs args)
     {
-        throw new NotImplementedException();
+        ScrollView owner = (ScrollView)sender;
+        owner.OnPropertyChanged(args);
     }
 
     private static void ValidateAnchorRatio(double value)
@@ -1046,7 +1091,7 @@ public class ScrollView : Control
 
     private static void ValidateZoomFactoryBoundary(double value)
     {
-        throw new NotImplementedException();
+        ScrollPresenter.ValidateZoomFactoryBoundary(value);
     }
 
     private bool AreAllScrollControllersCollapsed()
@@ -1066,7 +1111,48 @@ public class ScrollView : Control
 
     private bool CanScrollHorizontallyInDirection(bool inPositiveDirection)
     {
-        throw new NotImplementedException();
+        bool canScrollInDirection = false;
+
+        if (FlowDirection == FlowDirection.RightToLeft)
+        {
+            inPositiveDirection = !inPositiveDirection;
+        }
+
+        if (_scrollPresenter is not null)
+        {
+            var scrollPresenter = _scrollPresenter;
+            var horizontalScrollMode = ComputedHorizontalScrollMode;
+
+            if (horizontalScrollMode == ScrollingScrollMode.Enabled)
+            {
+                var zoomedExtentWidth = scrollPresenter.ExtentWidth * scrollPresenter.ZoomFactor;
+                var viewportWidth = scrollPresenter.ActualWidth;
+                if (zoomedExtentWidth > viewportWidth)
+                {
+                    // Ignore distance to an edge smaller than 1/1000th of a pixel to account for rounding approximations.
+                    // Otherwise a Left/Right arrow key may be processed and have no effect.
+                    const double offsetEpsilon = 0.001;
+
+                    if (inPositiveDirection)
+                    {
+                        var maxHorizontalOffset = zoomedExtentWidth - viewportWidth;
+                        if (scrollPresenter.HorizontalOffset < maxHorizontalOffset - offsetEpsilon)
+                        {
+                            canScrollInDirection = true;
+                        }
+                    }
+                    else
+                    {
+                        if (scrollPresenter.HorizontalOffset > offsetEpsilon)
+                        {
+                            canScrollInDirection = true;
+                        }
+                    }
+                }
+            }
+        }
+
+        return canScrollInDirection;
     }
 
     private bool CanScrollInDirection(FocusNavigationDirection direction)
@@ -1098,7 +1184,42 @@ public class ScrollView : Control
 
     private bool CanScrollVerticallyInDirection(bool inPositiveDirection)
     {
-        throw new NotImplementedException();
+        bool canScrollInDirection = false;
+        if (_scrollPresenter is not null)
+        {
+            var scrollPresenter = _scrollPresenter as ScrollPresenter;
+            var verticalScrollMode = ComputedVerticalScrollMode;
+
+            if (verticalScrollMode == ScrollingScrollMode.Enabled)
+            {
+                var zoomedExtentHeight = scrollPresenter.ExtentHeight * scrollPresenter.ZoomFactor;
+                var viewportHeight = scrollPresenter.ActualHeight;
+                if (zoomedExtentHeight > viewportHeight)
+                {
+                    // Ignore distance to an edge smaller than 1/1000th of a pixel to account for rounding approximations.
+                    // Otherwise an Up/Down arrow key may be processed and have no effect.
+                    const double offsetEpsilon = 0.001;
+
+                    if (inPositiveDirection)
+                    {
+                        var maxVerticalOffset = zoomedExtentHeight - viewportHeight;
+                        if (scrollPresenter.VerticalOffset < maxVerticalOffset - offsetEpsilon)
+                        {
+                            canScrollInDirection = true;
+                        }
+                    }
+                    else
+                    {
+                        if (scrollPresenter.VerticalOffset > offsetEpsilon)
+                        {
+                            canScrollInDirection = true;
+                        }
+                    }
+                }
+            }
+        }
+
+        return canScrollInDirection;
     }
 
     private void DoScroll(double offsetAmount, Orientation orientation)
@@ -1111,6 +1232,11 @@ public class ScrollView : Control
         throw new NotImplementedException();
     }
 
+    private DependencyObject GetNextFocusCandidate(FocusNavigationDirection direction, bool isPageNavigation)
+    {
+        throw new NotImplementedException();
+    }
+
     private void GoToState(string stateName, bool useTransitions = true)
     {
         VisualStateManager.GoToState(this, stateName, useTransitions);
@@ -1118,7 +1244,15 @@ public class ScrollView : Control
 
     private void HandleKeyDownForStandardScroll(KeyRoutedEventArgs args)
     {
-        throw new NotImplementedException();
+        // Up/Down/Left/Right will scroll by 15% the size of the viewport.
+        const double smallScrollProportion = 0.15;
+
+        Debug.Assert(!args.Handled);
+        Debug.Assert(_scrollPresenter != null);
+
+        bool isHandled = DoScrollForKey(args.Key, smallScrollProportion);
+
+        args.Handled = isHandled;
     }
 
     private void HandleKeyDownForXYNavigation(KeyRoutedEventArgs args)
@@ -1128,16 +1262,44 @@ public class ScrollView : Control
 
     private void HandleScrollControllerPointerEntered(bool isForHorizontalScrollController)
     {
-        throw new NotImplementedException();
+        if (isForHorizontalScrollController)
+        {
+            m_isPointerOverHorizontalScrollController = true;
+        }
+        else
+        {
+            m_isPointerOverVerticalScrollController = true;
+        }
+
+        UpdateScrollControllersAutoHiding();
+        if (AreScrollControllersAutoHiding() && !SharedHelpers.IsAnimationsEnabled())
+        {
+            HideIndicatorsAfterDelay();
+        }
     }
 
     private void HandleScrollControllerPointerExited(bool isForHorizontalScrollController)
     {
-        throw new NotImplementedException();
+        if (isForHorizontalScrollController)
+        {
+            m_isPointerOverHorizontalScrollController = false;
+        }
+        else
+        {
+            m_isPointerOverVerticalScrollController = false;
+        }
+
+        UpdateScrollControllersAutoHiding();
+        if (AreScrollControllersAutoHiding())
+        {
+            HideIndicatorsAfterDelay();
+        }
     }
 
     private void HideIndicators(bool useTransitions = true)
-    { throw new NotImplementedException(); }
+    {
+        throw new NotImplementedException();
+    }
 
     private void HideIndicatorsAfterDelay()
     {
@@ -1201,11 +1363,11 @@ public class ScrollView : Control
         throw new NotImplementedException();
     }
 
-    private void OnNoIndicatorStateStoryboardCompleted(
-            object sender,
-            object args)
+    private void OnNoIndicatorStateStoryboardCompleted(object sender, object args)
     {
-        throw new NotImplementedException();
+        Debug.Assert(m_hasNoIndicatorStateStoryboardCompletedHandler);
+
+        m_showingMouseIndicators = false;
     }
 
     private void OnPropertyChanged(DependencyPropertyChangedEventArgs args)
@@ -1227,15 +1389,51 @@ public class ScrollView : Control
         }
     }
 
+    private void OnScrollAnimationStarting(
+        object sender,
+        ScrollingScrollAnimationStartingEventArgs args)
+    {
+        throw new NotImplementedException();
+    }
+
+    private void OnScrollPresenterAnchorRequested(
+            object sender,
+            ScrollingAnchorRequestedEventArgs args)
+    {
+        throw new NotImplementedException();
+    }
+
+    private void OnScrollPresenterBringingIntoView(
+            object sender,
+            ScrollingBringingIntoViewEventArgs args)
+    {
+        throw new NotImplementedException();
+    }
+
     private void OnScrollPresenterExtentChanged(object sender, object args)
     {
         throw new NotImplementedException();
     }
 
+    private void OnScrollPresenterScrollCompleted(
+            object sender,
+            ScrollingScrollCompletedEventArgs args)
+    { throw new NotImplementedException(); }
+
     private void OnScrollPresenterStateChanged(object sender, object args)
     {
         throw new NotImplementedException();
     }
+
+    private void OnScrollPresenterViewChanged(
+            object sender,
+            object args)
+    { throw new NotImplementedException(); }
+
+    private void OnScrollPresenterZoomCompleted(
+            object sender,
+            ScrollingZoomCompletedEventArgs args)
+    { throw new NotImplementedException(); }
 
     private void OnScrollViewGettingFocus(object sender, GettingFocusEventArgs args)
     {
@@ -1309,7 +1507,32 @@ public class ScrollView : Control
 
     private void UnhookScrollPresenterEvents(bool isForDestructor)
     {
-        throw new NotImplementedException();
+        if (_scrollPresenter is { } scrollPresenter)
+        {
+            scrollPresenter.ExtentChanged -= OnScrollPresenterExtentChanged;
+            scrollPresenter.StateChanged -= OnScrollPresenterStateChanged;
+            scrollPresenter.ScrollAnimationStarting -= OnScrollAnimationStarting;
+            scrollPresenter.ZoomAnimationStarting -= OnZoomAnimationStarting;
+            scrollPresenter.ViewChanged -= OnScrollPresenterViewChanged;
+            scrollPresenter.ScrollCompleted -= OnScrollPresenterScrollCompleted;
+            scrollPresenter.ZoomCompleted -= OnScrollPresenterZoomCompleted;
+            scrollPresenter.BringingIntoView -= OnScrollPresenterBringingIntoView;
+            scrollPresenter.AnchorRequested -= OnScrollPresenterAnchorRequested;
+
+            DependencyObject scrollPresenterAsDO = scrollPresenter as DependencyObject;
+
+            if (m_scrollPresenterComputedHorizontalScrollModeChangedToken != 0)
+            {
+                scrollPresenterAsDO.UnregisterPropertyChangedCallback(ScrollPresenter.ComputedHorizontalScrollModeProperty, m_scrollPresenterComputedHorizontalScrollModeChangedToken);
+                m_scrollPresenterComputedHorizontalScrollModeChangedToken = 0;
+            }
+
+            if (m_scrollPresenterComputedVerticalScrollModeChangedToken != 0)
+            {
+                scrollPresenterAsDO.UnregisterPropertyChangedCallback(ScrollPresenter.ComputedVerticalScrollModeProperty, m_scrollPresenterComputedVerticalScrollModeChangedToken);
+                m_scrollPresenterComputedVerticalScrollModeChangedToken = 0;
+            }
+        }
     }
 
     private void UnhookScrollViewEvents()
@@ -1447,12 +1670,19 @@ public class ScrollView : Control
 
     private void UpdateScrollPresenter(ScrollPresenter scrollPresenter)
     {
-        throw new NotImplementedException();
+        UnhookScrollPresenterEvents(false /*isForDestructor*/);
+        _scrollPresenter = null;
+
+        SetValue(ScrollPresenterProperty, scrollPresenter);
+
+        if (scrollPresenter is not null)
+        {
+            _scrollPresenter = (scrollPresenter);
+            HookScrollPresenterEvents();
+        }
     }
 
-    private void UpdateVerticalScrollController(
-                        IScrollController verticalScrollController,
-        UIElement verticalScrollControllerElement)
+    private void UpdateVerticalScrollController(IScrollController verticalScrollController, UIElement verticalScrollControllerElement)
     {
         throw new NotImplementedException();
     }
