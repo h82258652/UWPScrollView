@@ -236,6 +236,21 @@ public class ScrollPresenter : FrameworkElement, IScrollAnchorProvider
     }
 
     /// <summary>
+    /// Gets or sets the maximum value for the read-only <see cref="ZoomFactor"/> property.
+    /// </summary>
+    public double MaxZoomFactor
+    {
+        get
+        {
+            throw new NotImplementedException();
+        }
+        set
+        {
+            throw new NotImplementedException();
+        }
+    }
+
+    /// <summary>
     /// Gets or sets the minimum value for the read-only <see cref="ZoomFactor"/> property.
     /// </summary>
     public double MinZoomFactor
