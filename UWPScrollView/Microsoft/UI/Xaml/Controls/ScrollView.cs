@@ -17,6 +17,7 @@ public class ScrollView : Control
 {
     private const string s_horizontalScrollBarPartName = "PART_HorizontalScrollBar";
     private const string s_IScrollAnchorProviderNotImpl = "Template part named PART_ScrollPresenter does not implement IScrollAnchorProvider.";
+    private const int s_noOpCorrelationId = -1;
     private const string s_noScrollPresenterPart = "No template part named PART_ScrollPresenter was loaded.";
     private const string s_rootPartName = "PART_Root";
     private const string s_scrollBarsSeparatorPartName = "PART_ScrollBarsSeparator";
@@ -283,6 +284,29 @@ public class ScrollView : Control
     /// <param name="options">Options that specify whether or not animations are enabled and snap points are respected.</param>
     /// <returns>A correlation ID number used to associate this method call with corresponding events.</returns>
     public int ScrollBy(double horizontalOffsetDelta, double verticalOffsetDelta, ScrollingScrollOptions options)
+    {
+        throw new NotImplementedException();
+    }
+
+    /// <summary>
+    /// Asynchronously scrolls to the specified offsets with animations enabled and snap points respected.
+    /// </summary>
+    /// <param name="horizontalOffset">The horizontal offset to scroll to.</param>
+    /// <param name="verticalOffset">The vertical offset to scroll to.</param>
+    /// <returns>A correlation ID number used to associate this method call with corresponding events.</returns>
+    public int ScrollTo(double horizontalOffset, double verticalOffset)
+    {
+        throw new NotImplementedException();
+    }
+
+    /// <summary>
+    /// Asynchronously scrolls to the specified offsets with the specified animation and snap point modes.
+    /// </summary>
+    /// <param name="horizontalOffset">The horizontal offset to scroll to.</param>
+    /// <param name="verticalOffset">The vertical offset to scroll to.</param>
+    /// <param name="options">Options that specify whether or not animations are enabled and snap points are respected.</param>
+    /// <returns>A correlation ID number used to associate this method call with corresponding events.</returns>
+    public int ScrollTo(double horizontalOffset, double verticalOffset, ScrollingScrollOptions options)
     {
         throw new NotImplementedException();
     }
