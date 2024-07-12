@@ -12,27 +12,27 @@ public interface IScrollController
     /// <summary>
     /// Occurs when a scroll velocity change is requested.
     /// </summary>
-    event TypedEventHandler<IScrollController, ScrollControllerAddScrollVelocityRequestedEventArgs> AddScrollVelocityRequested;
+    event TypedEventHandler<IScrollController, ScrollControllerAddScrollVelocityRequestedEventArgs>? AddScrollVelocityRequested;
 
     /// <summary>
     /// Occurs when the <see cref="CanScroll"/> property value has changed.
     /// </summary>
-    event TypedEventHandler<IScrollController, object> CanScrollChanged;
+    event TypedEventHandler<IScrollController, object?>? CanScrollChanged;
 
     /// <summary>
     /// Occurs when the <see cref="IsScrollingWithMouse"/> property value changes.
     /// </summary>
-    event TypedEventHandler<IScrollController, object> IsScrollingWithMouseChanged;
+    event TypedEventHandler<IScrollController, object?>? IsScrollingWithMouseChanged;
 
     /// <summary>
     /// Occurs when a scroll by an particular offset delta is requested.
     /// </summary>
-    event TypedEventHandler<IScrollController, ScrollControllerScrollByRequestedEventArgs> ScrollByRequested;
+    event TypedEventHandler<IScrollController, ScrollControllerScrollByRequestedEventArgs>? ScrollByRequested;
 
     /// <summary>
     /// Occurs when a scroll to a particular offset is requested.
     /// </summary>
-    event TypedEventHandler<IScrollController, ScrollControllerScrollToRequestedEventArgs> ScrollToRequested;
+    event TypedEventHandler<IScrollController, ScrollControllerScrollToRequestedEventArgs>? ScrollToRequested;
 
     /// <summary>
     /// Gets a value that indicates whether the user can scroll or pan with the scroll controller.
