@@ -237,13 +237,7 @@ public class ScrollView : Control
     /// <summary>
     /// Gets the vertical size of the viewable content in the <see cref="ScrollView"/>.
     /// </summary>
-    public double ViewportHeight
-    {
-        get
-        {
-            throw new NotImplementedException();
-        }
-    }
+    public double ViewportHeight => _scrollPresenter?.ViewportHeight ?? 0;
 
     /// <summary>
     /// Gets the horizontal size of the viewable content in the <see cref="ScrollView"/>.
