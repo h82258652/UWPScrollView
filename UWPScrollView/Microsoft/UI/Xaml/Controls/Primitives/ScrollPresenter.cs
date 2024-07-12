@@ -5,6 +5,7 @@ using Windows.Foundation;
 using Windows.UI.Composition;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
+using Windows.UI.Xaml.Input;
 using Windows.UI.Xaml.Markup;
 using Windows.UI.Xaml.Media;
 
@@ -16,6 +17,30 @@ namespace Microsoft.UI.Xaml.Controls.Primitives;
 [ContentProperty(Name = nameof(Content))]
 public class ScrollPresenter : FrameworkElement, IScrollAnchorProvider
 {
+    private float m_animationRestartZoomFactor = 1;
+
+    private float m_contentLayoutOffsetX;
+
+    private float m_contentLayoutOffsetY;
+
+    private Vector2 m_endOfInertiaPosition;
+
+    private float m_endOfInertiaZoomFactor = 1;
+
+    private double m_unzoomedExtentHeight;
+
+    private double m_unzoomedExtentWidth;
+
+    private double m_viewportHeight;
+
+    private double m_viewportWidth;
+
+    private double m_zoomedHorizontalOffset;
+
+    private double m_zoomedVerticalOffset;
+
+    private float m_zoomFactor = 1;
+
     /// <summary>
     /// Initializes a new instance of the <see cref="ScrollPresenter"/> class.
     /// </summary>
@@ -468,6 +493,36 @@ public class ScrollPresenter : FrameworkElement, IScrollAnchorProvider
     /// <param name="options">Options that specify whether or not animations are enabled and snap points are respected.</param>
     /// <returns>A correlation ID number used to associate this method call with corresponding events.</returns>
     public int ZoomTo(float zoomFactor, Vector2? centerPoint, ScrollingZoomOptions options)
+    {
+        throw new NotImplementedException();
+    }
+
+    private void OnFlowDirectionChanged(DependencyObject sender, DependencyProperty args)
+    {
+        throw new NotImplementedException();
+    }
+
+    private void OnLoaded(object sender, RoutedEventArgs args)
+    {
+        throw new NotImplementedException();
+    }
+
+    private void OnPointerPressed(object sender, PointerRoutedEventArgs args)
+    {
+        throw new NotImplementedException();
+    }
+
+    private void OnUnloaded(object sender, RoutedEventArgs args)
+    {
+        throw new NotImplementedException();
+    }
+
+    private void RaisePostArrange()
+    {
+        throw new NotImplementedException();
+    }
+
+    private void ResetAnchorElement()
     {
         throw new NotImplementedException();
     }
