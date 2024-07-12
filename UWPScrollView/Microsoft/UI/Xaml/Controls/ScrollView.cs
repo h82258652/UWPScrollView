@@ -185,6 +185,21 @@ public class ScrollView : Control
     }
 
     /// <summary>
+    /// Gets or sets the minimum value for the read-only <see cref="ZoomFactor"/> property.
+    /// </summary>
+    public double MinZoomFactor
+    {
+        get
+        {
+            throw new NotImplementedException();
+        }
+        set
+        {
+            throw new NotImplementedException();
+        }
+    }
+
+    /// <summary>
     /// Gets the vertical length of the content that can be scrolled.
     /// </summary>
     public double ScrollableHeight => _scrollPresenter?.ScrollableHeight ?? 0;
@@ -197,13 +212,7 @@ public class ScrollView : Control
     /// <summary>
     /// Gets the loaded <see cref="ScrollPresenter"/> control template part.
     /// </summary>
-    public ScrollPresenter? ScrollPresenter
-    {
-        get
-        {
-            throw new NotImplementedException();
-        }
-    }
+    public ScrollPresenter? ScrollPresenter => _scrollPresenter;
 
     /// <summary>
     /// Gets the current interaction state of the control.
