@@ -1,6 +1,7 @@
 ﻿using Microsoft.UI.Xaml.Controls.Primitives;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Numerics;
 using Windows.Devices.Input;
 using Windows.Foundation;
@@ -8,7 +9,9 @@ using Windows.System;
 using Windows.UI.Composition;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
+using Windows.UI.Xaml.Controls.Primitives;
 using Windows.UI.Xaml.Input;
+using Windows.UI.Xaml.Media.Animation;
 
 namespace Microsoft.UI.Xaml.Controls;
 
@@ -90,6 +93,15 @@ public class ScrollView : Control
         new PropertyMetadata(ScrollingScrollBarVisibility.Auto, OnHorizontalScrollBarVisibilityPropertyChanged));
 
     /// <summary>
+    /// Identifies the <see cref="HorizontalScrollChainMode"/> dependency property.
+    /// </summary>
+    public static readonly DependencyProperty HorizontalScrollChainModeProperty = DependencyProperty.Register(
+        nameof(HorizontalScrollChainMode),
+        typeof(ScrollingChainMode),
+        typeof(ScrollView),
+        new PropertyMetadata(ScrollingChainMode.Auto, OnHorizontalScrollChainModePropertyChanged));
+
+    /// <summary>
     /// Identifies the <see cref="HorizontalScrollMode"/> dependency property.
     /// </summary>
     public static readonly DependencyProperty HorizontalScrollModeProperty = DependencyProperty.Register(
@@ -135,6 +147,11 @@ public class ScrollView : Control
         new PropertyMetadata(0.1d, OnMinZoomFactorPropertyChanged));
 
     /// <summary>
+    /// Identifies the <see cref="VerticalAnchorRatio"/> dependency property.
+    /// </summary>
+    public static readonly DependencyProperty VerticalAnchorRatioProperty;
+
+    /// <summary>
     /// Identifies the <see cref="VerticalScrollBarVisibility"/> dependency property.
     /// </summary>
     public static readonly DependencyProperty VerticalScrollBarVisibilityProperty = DependencyProperty.Register(
@@ -144,6 +161,11 @@ public class ScrollView : Control
         new PropertyMetadata(ScrollingScrollBarVisibility.Auto, OnVerticalScrollBarVisibilityPropertyChanged));
 
     /// <summary>
+    /// Identifies the <see cref="VerticalScrollChainMode"/> dependency property.
+    /// </summary>
+    public static readonly DependencyProperty VerticalScrollChainModeProperty;
+
+    /// <summary>
     /// Identifies the <see cref="VerticalScrollMode"/> dependency property.
     /// </summary>
     public static readonly DependencyProperty VerticalScrollModeProperty = DependencyProperty.Register(
@@ -151,6 +173,11 @@ public class ScrollView : Control
         typeof(ScrollingScrollMode),
         typeof(ScrollView),
         new PropertyMetadata(ScrollingScrollMode.Auto, OnVerticalScrollModePropertyChanged));
+
+    /// <summary>
+    /// Identifies the <see cref="VerticalScrollRailMode"/> dependency property.
+    /// </summary>
+    public static readonly DependencyProperty VerticalScrollRailModeProperty;
 
     /// <summary>
     /// Identifies the <see cref="ZoomChainMode"/> dependency property.
@@ -174,6 +201,10 @@ public class ScrollView : Control
 
     private const string s_IScrollAnchorProviderNotImpl = "Template part named PART_ScrollPresenter does not implement IScrollAnchorProvider.";
 
+    private const string s_mouseIndicatorStateName = "MouseIndicator";
+
+    private const string s_noIndicatorStateName = "NoIndicator";
+
     private const int s_noOpCorrelationId = -1;
 
     private const string s_noScrollPresenterPart = "No template part named PART_ScrollPresenter was loaded.";
@@ -183,6 +214,8 @@ public class ScrollView : Control
     private const string s_scrollBarsSeparatorPartName = "PART_ScrollBarsSeparator";
 
     private const string s_scrollPresenterPartName = "PART_ScrollPresenter";
+
+    private const string s_touchIndicatorStateName = "TouchIndicator";
 
     private const string s_verticalScrollBarPartName = "PART_VerticalScrollBar";
 
@@ -196,7 +229,14 @@ public class ScrollView : Control
 
     private FocusInputDeviceKind m_focusInputDeviceKind = FocusInputDeviceKind.None;
 
+    /// <summary>
+    /// Indicates whether the NoIndicator visual state has a Storyboard for which a completion event was hooked up.
+    /// </summary>
+    private bool m_hasNoIndicatorStateStoryboardCompletedHandler;
+
     private DispatcherTimer m_hideIndicatorsTimer;
+
+    private ScrollBarController? m_horizontalScrollBarController;
 
     private IScrollController m_horizontalScrollController;
 
@@ -237,6 +277,8 @@ public class ScrollView : Control
     /// Set to True when the mouse scrolling indicators are currently showing.
     /// </summary>
     private bool m_showingMouseIndicators = false;
+
+    private ScrollBarController? m_verticalScrollBarController;
 
     private IScrollController m_verticalScrollController;
 
@@ -353,14 +395,8 @@ public class ScrollView : Control
     /// </summary>
     public ScrollingContentOrientation ContentOrientation
     {
-        get
-        {
-            return (ScrollingContentOrientation)GetValue(ContentOrientationProperty);
-        }
-        set
-        {
-            SetValue(ContentOrientationProperty, value);
-        }
+        get => (ScrollingContentOrientation)GetValue(ContentOrientationProperty);
+        set => SetValue(ContentOrientationProperty, value);
     }
 
     /// <summary>
@@ -399,27 +435,15 @@ public class ScrollView : Control
     /// <summary>
     /// Gets the distance the content has been scrolled horizontally.
     /// </summary>
-    public double HorizontalOffset
-    {
-        get
-        {
-            throw new NotImplementedException();
-        }
-    }
+    public double HorizontalOffset => _scrollPresenter?.HorizontalOffset ?? 0;
 
     /// <summary>
     /// Gets or sets a value that indicates whether a scroll controller should be displayed for the horizontal scrolling direction.
     /// </summary>
     public ScrollingScrollBarVisibility HorizontalScrollBarVisibility
     {
-        get
-        {
-            throw new NotImplementedException();
-        }
-        set
-        {
-            throw new NotImplementedException();
-        }
+        get => (ScrollingScrollBarVisibility)GetValue(HorizontalScrollBarVisibilityProperty);
+        set => SetValue(HorizontalScrollBarVisibilityProperty, value);
     }
 
     /// <summary>
@@ -427,14 +451,8 @@ public class ScrollView : Control
     /// </summary>
     public ScrollingChainMode HorizontalScrollChainMode
     {
-        get
-        {
-            throw new NotImplementedException();
-        }
-        set
-        {
-            throw new NotImplementedException();
-        }
+        get => (ScrollingChainMode)GetValue(HorizontalScrollChainModeProperty);
+        set => SetValue(HorizontalScrollChainModeProperty, value);
     }
 
     /// <summary>
@@ -451,14 +469,8 @@ public class ScrollView : Control
     /// </summary>
     public ScrollingRailMode HorizontalScrollRailMode
     {
-        get
-        {
-            return (ScrollingRailMode)GetValue(HorizontalScrollRailModeProperty);
-        }
-        set
-        {
-            SetValue(HorizontalScrollRailModeProperty, value);
-        }
+        get => (ScrollingRailMode)GetValue(HorizontalScrollRailModeProperty);
+        set => SetValue(HorizontalScrollRailModeProperty, value);
     }
 
     /// <summary>
@@ -478,7 +490,8 @@ public class ScrollView : Control
         get => (double)GetValue(MaxZoomFactorProperty);
         set
         {
-            throw new NotImplementedException();
+            ValidateZoomFactoryBoundary(value);
+            SetValue(MaxZoomFactorProperty, value);
         }
     }
 
@@ -490,7 +503,8 @@ public class ScrollView : Control
         get => (double)GetValue(MinZoomFactorProperty);
         set
         {
-            throw new NotImplementedException();
+            ValidateZoomFactoryBoundary(value);
+            SetValue(MinZoomFactorProperty, value);
         }
     }
 
@@ -521,24 +535,19 @@ public class ScrollView : Control
     {
         get
         {
-            throw new NotImplementedException();
+            return (double)GetValue(VerticalAnchorRatioProperty);
         }
         set
         {
-            throw new NotImplementedException();
+            ValidateAnchorRatio(value);
+            SetValue(VerticalAnchorRatioProperty, value);
         }
     }
 
     /// <summary>
     /// Gets the distance the content has been scrolled vertically.
     /// </summary>
-    public double VerticalOffset
-    {
-        get
-        {
-            throw new NotImplementedException();
-        }
-    }
+    public double VerticalOffset => _scrollPresenter?.VerticalOffset ?? 0;
 
     /// <summary>
     /// Gets or sets a value that indicates whether a scroll controller should be displayed for the vertical scrolling direction.
@@ -547,11 +556,11 @@ public class ScrollView : Control
     {
         get
         {
-            throw new NotImplementedException();
+            return (ScrollingScrollBarVisibility)GetValue(VerticalScrollBarVisibilityProperty);
         }
         set
         {
-            throw new NotImplementedException();
+            SetValue(VerticalScrollBarVisibilityProperty, value);
         }
     }
 
@@ -562,11 +571,11 @@ public class ScrollView : Control
     {
         get
         {
-            throw new NotImplementedException();
+            return (ScrollingChainMode)GetValue(VerticalScrollChainModeProperty);
         }
         set
         {
-            throw new NotImplementedException();
+            SetValue(VerticalScrollChainModeProperty, value);
         }
     }
 
@@ -586,11 +595,11 @@ public class ScrollView : Control
     {
         get
         {
-            throw new NotImplementedException();
+            return (ScrollingRailMode)GetValue(VerticalScrollRailModeProperty);
         }
         set
         {
-            throw new NotImplementedException();
+            SetValue(VerticalScrollRailModeProperty, value);
         }
     }
 
@@ -747,7 +756,131 @@ public class ScrollView : Control
     {
         base.OnApplyTemplate();
 
-        throw new NotImplementedException();
+        m_hasNoIndicatorStateStoryboardCompletedHandler = false;
+        m_keepIndicatorsShowing = false;
+
+        Control thisAsControlProtected = this;
+
+        ScrollPresenter scrollPresenter = (ScrollPresenter)GetTemplateChild(s_scrollPresenterPartName);
+
+        UpdateScrollPresenter(scrollPresenter);
+
+        UIElement horizontalScrollControllerElement = (UIElement)GetTemplateChild(s_horizontalScrollBarPartName);
+        IScrollController? horizontalScrollController = horizontalScrollControllerElement as IScrollController;
+        ScrollBar horizontalScrollBar = null;
+
+        if (horizontalScrollControllerElement is not null && horizontalScrollController is null)
+        {
+            horizontalScrollBar = horizontalScrollControllerElement as ScrollBar;
+
+            if (horizontalScrollBar is not null)
+            {
+                if (m_horizontalScrollBarController is null)
+                {
+                    m_horizontalScrollBarController = new ScrollBarController();
+                }
+                horizontalScrollController = m_horizontalScrollBarController as IScrollController;
+            }
+        }
+
+        if (horizontalScrollBar is not null)
+        {
+            m_horizontalScrollBarController.SetScrollBar(horizontalScrollBar);
+        }
+        else
+        {
+            m_horizontalScrollBarController = null;
+        }
+
+        UpdateHorizontalScrollController(horizontalScrollController, horizontalScrollControllerElement);
+
+        UIElement verticalScrollControllerElement = (UIElement)GetTemplateChild(s_verticalScrollBarPartName);
+        IScrollController verticalScrollController = verticalScrollControllerElement as IScrollController;
+        ScrollBar verticalScrollBar = null;
+
+        if (verticalScrollControllerElement is not null && verticalScrollController is null)
+        {
+            verticalScrollBar = verticalScrollControllerElement as ScrollBar;
+
+            if (verticalScrollBar is not null)
+            {
+                if (m_verticalScrollBarController is null)
+                {
+                    m_verticalScrollBarController = new ScrollBarController();
+                }
+                verticalScrollController = m_verticalScrollBarController as IScrollController;
+            }
+        }
+
+        if (verticalScrollBar is not null)
+        {
+            m_verticalScrollBarController.SetScrollBar(verticalScrollBar);
+        }
+        else
+        {
+            m_verticalScrollBarController = null;
+        }
+
+        UpdateVerticalScrollController(verticalScrollController, verticalScrollControllerElement);
+
+        UIElement scrollControllersSeparator = (UIElement)GetTemplateChild(s_scrollBarsSeparatorPartName);
+
+        UpdateScrollControllersSeparator(scrollControllersSeparator);
+
+        UpdateScrollControllersVisibility(true /*horizontalChange*/, true /*verticalChange*/);
+
+        FrameworkElement root = (FrameworkElement)GetTemplateChild(s_rootPartName);
+
+        if (root is not null)
+        {
+            var rootVisualStateGroups = VisualStateManager.GetVisualStateGroups(root);
+
+            if (rootVisualStateGroups is not null)
+            {
+                var groupCount = rootVisualStateGroups.Count;
+
+                for (var groupIndex = 0; groupIndex < groupCount; ++groupIndex)
+                {
+                    VisualStateGroup group = rootVisualStateGroups[groupIndex];
+
+                    if (group is not null)
+                    {
+                        var visualStates = group.States;
+
+                        if (visualStates is not null)
+                        {
+                            var stateCount = visualStates.Count;
+
+                            for (var stateIndex = 0; stateIndex < stateCount; ++stateIndex)
+                            {
+                                VisualState state = visualStates[stateIndex];
+
+                                if (state is not null)
+                                {
+                                    var stateName = state.Name;
+                                    Storyboard stateStoryboard = state.Storyboard;
+
+                                    if (stateStoryboard is not null)
+                                    {
+                                        if (stateName == s_noIndicatorStateName)
+                                        {
+                                            stateStoryboard.Completed += OnNoIndicatorStateStoryboardCompleted;
+                                            m_hasNoIndicatorStateStoryboardCompletedHandler = true;
+                                        }
+                                        else if (stateName == s_touchIndicatorStateName || stateName == s_mouseIndicatorStateName)
+                                        {
+                                            stateStoryboard.Completed += OnIndicatorStateStoryboardCompleted;
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        UpdateVisualStates(false /*useTransitions*/);
     }
 
     /// <inheritdoc/>
@@ -766,6 +899,50 @@ public class ScrollView : Control
             scrollControllersAutoHidingChanged: false,
             updateScrollControllersAutoHiding: true,
             onlyForAutoHidingScrollControllers: true);
+    }
+
+    protected override void OnKeyDown(KeyRoutedEventArgs e)
+    {
+        base.OnKeyDown(e);
+
+        m_preferMouseIndicators = false;
+
+        if (_scrollPresenter is not null)
+        {
+            KeyRoutedEventArgs eventArgs = e;
+            if (!eventArgs.Handled)
+            {
+                var originalKey = eventArgs.OriginalKey;
+                bool isGamepadKey = FocusHelper.IsGamepadNavigationDirection(originalKey) || FocusHelper.IsGamepadPageNavigationDirection(originalKey);
+
+                if (isGamepadKey)
+                {
+                    if (IsInputKindIgnored(ScrollingInputKinds.Gamepad))
+                    {
+                        return;
+                    }
+                }
+                else
+                {
+                    if (IsInputKindIgnored(ScrollingInputKinds.Keyboard))
+                    {
+                        return;
+                    }
+                }
+
+                bool isXYFocusEnabledForKeyboard = XYFocusKeyboardNavigation == XYFocusKeyboardNavigationMode.Enabled;
+                bool doXYFocusScrolling = isGamepadKey || isXYFocusEnabledForKeyboard;
+
+                if (doXYFocusScrolling)
+                {
+                    HandleKeyDownForXYNavigation(eventArgs);
+                }
+                else
+                {
+                    HandleKeyDownForStandardScroll(eventArgs);
+                }
+            }
+        }
     }
 
     private static void OnComputedHorizontalScrollBarVisibilityPropertyChanged(DependencyObject sender, DependencyPropertyChangedEventArgs args)
@@ -807,6 +984,11 @@ public class ScrollView : Control
     }
 
     private static void OnHorizontalScrollBarVisibilityPropertyChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+    {
+        throw new NotImplementedException();
+    }
+
+    private static void OnHorizontalScrollChainModePropertyChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
     {
         throw new NotImplementedException();
     }
@@ -934,6 +1116,11 @@ public class ScrollView : Control
         VisualStateManager.GoToState(this, stateName, useTransitions);
     }
 
+    private void HandleKeyDownForStandardScroll(KeyRoutedEventArgs args)
+    {
+        throw new NotImplementedException();
+    }
+
     private void HandleKeyDownForXYNavigation(KeyRoutedEventArgs args)
     {
         throw new NotImplementedException();
@@ -948,6 +1135,9 @@ public class ScrollView : Control
     {
         throw new NotImplementedException();
     }
+
+    private void HideIndicators(bool useTransitions = true)
+    { throw new NotImplementedException(); }
 
     private void HideIndicatorsAfterDelay()
     {
@@ -1000,6 +1190,20 @@ public class ScrollView : Control
     }
 
     private void OnHorizontalScrollControllerPointerEntered(object sender, PointerRoutedEventArgs args)
+    {
+        throw new NotImplementedException();
+    }
+
+    private void OnIndicatorStateStoryboardCompleted(
+         object sender,
+         object args)
+    {
+        throw new NotImplementedException();
+    }
+
+    private void OnNoIndicatorStateStoryboardCompleted(
+            object sender,
+            object args)
     {
         throw new NotImplementedException();
     }
@@ -1088,6 +1292,11 @@ public class ScrollView : Control
         ZoomAnimationStarting?.Invoke(this, args);
     }
 
+    private void ResetHideIndicatorsTimer(bool isForDestructor = false, bool restart = false)
+    {
+        throw new NotImplementedException();
+    }
+
     private void UnhookCompositionTargetRendering()
     {
         throw new NotImplementedException();
@@ -1113,10 +1322,20 @@ public class ScrollView : Control
         throw new NotImplementedException();
     }
 
+    private void UpdateHorizontalScrollController(
+                                                                                                                                                                                                                                                                                        IScrollController horizontalScrollController,
+        UIElement horizontalScrollControllerElement)
+    {
+        throw new NotImplementedException();
+    }
+
     private void UpdateScrollControllersAutoHiding(bool forceUpdate = false)
     {
         throw new NotImplementedException();
     }
+
+    private void UpdateScrollControllersSeparator(UIElement scrollControllersSeparator)
+    { throw new NotImplementedException(); }
 
     private void UpdateScrollControllersSeparatorVisualState(bool useTransitions = true, bool scrollControllersAutoHidingChanged = false)
     {
@@ -1125,10 +1344,115 @@ public class ScrollView : Control
 
     private void UpdateScrollControllersVisibility(bool horizontalChange, bool verticalChange)
     {
-        throw new NotImplementedException();
+        Debug.Assert(horizontalChange || verticalChange);
+
+        bool isHorizontalScrollControllerVisible = false;
+
+        if (horizontalChange)
+        {
+            var scrollBarVisibility = HorizontalScrollBarVisibility;
+
+            if (scrollBarVisibility == ScrollingScrollBarVisibility.Auto &&
+                m_horizontalScrollController is not null &&
+                m_horizontalScrollController.CanScroll)
+            {
+                isHorizontalScrollControllerVisible = true;
+            }
+            else
+            {
+                isHorizontalScrollControllerVisible = (scrollBarVisibility == ScrollingScrollBarVisibility.Visible);
+            }
+
+            SetValue(ComputedHorizontalScrollBarVisibilityProperty, isHorizontalScrollControllerVisible ? Visibility.Visible : Visibility.Collapsed);
+        }
+        else
+        {
+            isHorizontalScrollControllerVisible = ComputedHorizontalScrollBarVisibility == Visibility.Visible;
+        }
+
+        bool isVerticalScrollControllerVisible = false;
+
+        if (verticalChange)
+        {
+            var scrollBarVisibility = VerticalScrollBarVisibility;
+
+            if (scrollBarVisibility == ScrollingScrollBarVisibility.Auto &&
+                m_verticalScrollController is not null &&
+                m_verticalScrollController.CanScroll)
+            {
+                isVerticalScrollControllerVisible = true;
+            }
+            else
+            {
+                isVerticalScrollControllerVisible = (scrollBarVisibility == ScrollingScrollBarVisibility.Visible);
+            }
+
+            SetValue(ComputedVerticalScrollBarVisibilityProperty, isVerticalScrollControllerVisible ? Visibility.Visible : Visibility.Collapsed);
+        }
+        else
+        {
+            isVerticalScrollControllerVisible = ComputedVerticalScrollBarVisibility == Visibility.Visible;
+        }
+
+        if (m_scrollControllersSeparatorElement is not null)
+        {
+            m_scrollControllersSeparatorElement.Visibility = (isHorizontalScrollControllerVisible && isVerticalScrollControllerVisible ?
+                Visibility.Visible : Visibility.Collapsed);
+        }
     }
 
     private void UpdateScrollControllersVisualState(bool useTransitions = true, bool showIndicators = false, bool hideIndicators = false)
+    {
+        Debug.Assert(!(showIndicators && hideIndicators));
+
+        bool areScrollControllersAutoHiding = AreScrollControllersAutoHiding();
+
+        Debug.Assert(!(!areScrollControllersAutoHiding && hideIndicators));
+
+        if ((!areScrollControllersAutoHiding || showIndicators) && !hideIndicators)
+        {
+            if (AreAllScrollControllersCollapsed())
+            {
+                return;
+            }
+
+            ResetHideIndicatorsTimer(false /*isForDestructor*/, true /*restart*/);
+
+            // Mouse indicators dominate if they are already showing or if we have set the flag to prefer them.
+            if (m_preferMouseIndicators || m_showingMouseIndicators || !areScrollControllersAutoHiding)
+            {
+                GoToState(s_mouseIndicatorStateName, useTransitions);
+
+                m_showingMouseIndicators = true;
+            }
+            else
+            {
+                GoToState(s_touchIndicatorStateName, useTransitions);
+            }
+        }
+        else if (!m_keepIndicatorsShowing)
+        {
+            if (SharedHelpers.IsAnimationsEnabled())
+            {
+                // By default there is a delay before the NoIndicator state actually shows.
+                HideIndicators();
+            }
+            else
+            {
+                // Since OS animations are turned off, use a timer to delay the indicators' hiding.
+                HideIndicatorsAfterDelay();
+            }
+        }
+    }
+
+    private void UpdateScrollPresenter(ScrollPresenter scrollPresenter)
+    {
+        throw new NotImplementedException();
+    }
+
+    private void UpdateVerticalScrollController(
+                        IScrollController verticalScrollController,
+        UIElement verticalScrollControllerElement)
     {
         throw new NotImplementedException();
     }

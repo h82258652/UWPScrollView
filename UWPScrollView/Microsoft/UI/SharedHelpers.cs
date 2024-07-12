@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Microsoft.UI.Xaml;
+namespace Microsoft.UI;
 
 internal static class SharedHelpers
 {

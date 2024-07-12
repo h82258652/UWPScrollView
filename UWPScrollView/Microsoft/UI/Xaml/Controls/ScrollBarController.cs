@@ -153,6 +153,16 @@ internal class ScrollBarController : IScrollController
         UpdateCanScroll();
     }
 
+    internal void SetScrollBar(ScrollBar scrollBar)
+    {
+        UnhookScrollBarEvent();
+
+        _scrollBar = scrollBar;
+
+        HookScrollBarEvent();
+        HookScrollBarPropertyChanged();
+    }
+
     private void HookScrollBarEvent()
     {
         if (_scrollBar is not null)
@@ -415,16 +425,6 @@ internal class ScrollBarController : IScrollController
         }
 
         return false;
-    }
-
-    private void SetScrollBar(ScrollBar scrollBar)
-    {
-        UnhookScrollBarEvent();
-
-        _scrollBar = scrollBar;
-
-        HookScrollBarEvent();
-        HookScrollBarPropertyChanged();
     }
 
     private void UnhookScrollBarEvent()
