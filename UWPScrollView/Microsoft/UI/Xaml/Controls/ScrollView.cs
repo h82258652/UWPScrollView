@@ -41,6 +41,28 @@ public class ScrollView : Control
     }
 
     /// <summary>
+    /// Gets the vertical size of all the scrollable content in the <see cref="ScrollView"/>.
+    /// </summary>
+    public double ExtentHeight
+    {
+        get
+        {
+            throw new NotImplementedException();
+        }
+    }
+
+    /// <summary>
+    /// Gets the horizontal size of all the scrollable content in the ScrollView.
+    /// </summary>
+    public double ExtentWidth
+    {
+        get
+        {
+            throw new NotImplementedException();
+        }
+    }
+
+    /// <summary>
     /// Gets or sets a value that determines how manipulation input influences scrolling behavior on the horizontal axis.
     /// </summary>
     public ScrollingScrollMode HorizontalScrollMode
