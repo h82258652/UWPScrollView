@@ -1,6 +1,7 @@
 ﻿using Microsoft.UI.Xaml.Controls.Primitives;
 using System;
 using System.Numerics;
+using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
 using Windows.UI.Xaml.Input;
 
@@ -221,12 +222,33 @@ public class ScrollView : Control
         throw new NotImplementedException();
     }
 
+    private void OnScrollViewGettingFocus(object sender, GettingFocusEventArgs args)
+    {
+        throw new NotImplementedException();
+    }
+
+    private void OnScrollViewIsEnabledChanged(object sender, DependencyPropertyChangedEventArgs args)
+    {
+        throw new NotImplementedException();
+    }
+
     private void OnScrollViewPointerMoved(object sender, PointerRoutedEventArgs args)
     {
         throw new NotImplementedException();
     }
 
     private void OnVerticalScrollControllerPointerExited(object sender, PointerRoutedEventArgs args)
+    {
+        throw new NotImplementedException();
+    }
+
+    private void UpdateVisualStates(
+                    bool useTransitions = true,
+        bool showIndicators = false,
+        bool hideIndicators = false,
+        bool scrollControllersAutoHidingChanged = false,
+        bool updateScrollControllersAutoHiding = false,
+        bool onlyForAutoHidingScrollControllers = false)
     {
         throw new NotImplementedException();
     }
