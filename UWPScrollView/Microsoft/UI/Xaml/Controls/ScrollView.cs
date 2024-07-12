@@ -273,7 +273,7 @@ public class ScrollView : Control
     /// <returns>A correlation ID number used to associate this method call with corresponding events.</returns>
     public int ScrollBy(double horizontalOffsetDelta, double verticalOffsetDelta)
     {
-        throw new NotImplementedException();
+        return _scrollPresenter?.ScrollBy(horizontalOffsetDelta, verticalOffsetDelta) ?? s_noOpCorrelationId;
     }
 
     /// <summary>
@@ -283,9 +283,9 @@ public class ScrollView : Control
     /// <param name="verticalOffsetDelta">The offset to scroll by vertically.</param>
     /// <param name="options">Options that specify whether or not animations are enabled and snap points are respected.</param>
     /// <returns>A correlation ID number used to associate this method call with corresponding events.</returns>
-    public int ScrollBy(double horizontalOffsetDelta, double verticalOffsetDelta, ScrollingScrollOptions options)
+    public int ScrollBy(double horizontalOffsetDelta, double verticalOffsetDelta, ScrollingScrollOptions? options)
     {
-        throw new NotImplementedException();
+        return _scrollPresenter?.ScrollBy(horizontalOffsetDelta, verticalOffsetDelta, options) ?? s_noOpCorrelationId;
     }
 
     /// <summary>
@@ -296,7 +296,7 @@ public class ScrollView : Control
     /// <returns>A correlation ID number used to associate this method call with corresponding events.</returns>
     public int ScrollTo(double horizontalOffset, double verticalOffset)
     {
-        throw new NotImplementedException();
+        return _scrollPresenter?.ScrollTo(horizontalOffset, verticalOffset) ?? s_noOpCorrelationId;
     }
 
     /// <summary>
@@ -306,9 +306,9 @@ public class ScrollView : Control
     /// <param name="verticalOffset">The vertical offset to scroll to.</param>
     /// <param name="options">Options that specify whether or not animations are enabled and snap points are respected.</param>
     /// <returns>A correlation ID number used to associate this method call with corresponding events.</returns>
-    public int ScrollTo(double horizontalOffset, double verticalOffset, ScrollingScrollOptions options)
+    public int ScrollTo(double horizontalOffset, double verticalOffset, ScrollingScrollOptions? options)
     {
-        throw new NotImplementedException();
+        return _scrollPresenter?.ScrollTo(horizontalOffset, verticalOffset, options) ?? s_noOpCorrelationId;
     }
 
     /// <summary>
