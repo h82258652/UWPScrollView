@@ -125,13 +125,7 @@ public class ScrollView : Control
     /// <summary>
     /// Gets the current interaction state of the control.
     /// </summary>
-    public ScrollingInteractionState State
-    {
-        get
-        {
-            throw new NotImplementedException();
-        }
-    }
+    public ScrollingInteractionState State => _scrollPresenter?.State ?? ScrollingInteractionState.Idle;
 
     /// <summary>
     /// Gets or sets a value that determines how manipulation input influences scrolling behavior on the horizontal axis.
