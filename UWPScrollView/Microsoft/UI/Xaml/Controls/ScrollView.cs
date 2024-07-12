@@ -269,6 +269,7 @@ public class ScrollView : Control
 
     private DispatcherTimer m_hideIndicatorsTimer;
 
+    private int m_horizontalAddScrollVelocityOffsetChangeCorrelationId = -1;
     private ScrollBarController? m_horizontalScrollBarController;
 
     private IScrollController m_horizontalScrollController;
@@ -325,6 +326,7 @@ public class ScrollView : Control
     /// </summary>
     private bool m_showingMouseIndicators = false;
 
+    private int m_verticalAddScrollVelocityOffsetChangeCorrelationId = -1;
     private ScrollBarController? m_verticalScrollBarController;
 
     private IScrollController m_verticalScrollController;
@@ -1614,12 +1616,66 @@ public class ScrollView : Control
         }
     }
 
-    private void OnScrollControllerIsScrollingWithMouseChanged(
-        IScrollController sender,
-        object
-        args)
+    private void OnScrollControllerIsScrollingWithMouseChanged(IScrollController sender, object args)
     {
-        throw new NotImplementedException();
+        bool isScrollControllerScrollingWithMouse = sender.IsScrollingWithMouse;
+        bool showIndicators = false;
+        bool hideIndicators = false;
+
+        if (m_horizontalScrollController is not null && m_horizontalScrollController == sender)
+        {
+            UpdateScrollControllersAutoHiding();
+
+            if (m_isHorizontalScrollControllerScrollingWithMouse != isScrollControllerScrollingWithMouse)
+            {
+                m_isHorizontalScrollControllerScrollingWithMouse = isScrollControllerScrollingWithMouse;
+
+                if (isScrollControllerScrollingWithMouse)
+                {
+                    // Prevent the vertical scroll controller from fading out while the user is scrolling with mouse with the horizontal one.
+                    m_keepIndicatorsShowing = true;
+                    showIndicators = true;
+                }
+                else
+                {
+                    // Make the scroll controllers fade out, after the normal delay, if they are auto-hiding.
+                    m_keepIndicatorsShowing = false;
+                    hideIndicators = AreScrollControllersAutoHiding();
+                }
+            }
+
+            // IScrollController::CanScroll might have changed and affect the scroll controller's visibility
+            // when its visibility mode is Auto.
+            UpdateScrollControllersVisibility(true /*horizontalChange*/, false /*verticalChange*/);
+            UpdateVisualStates(true /*useTransitions*/, showIndicators, hideIndicators);
+        }
+        else if (m_verticalScrollController is not null && m_verticalScrollController == sender)
+        {
+            UpdateScrollControllersAutoHiding();
+
+            if (m_isVerticalScrollControllerScrollingWithMouse != isScrollControllerScrollingWithMouse)
+            {
+                m_isVerticalScrollControllerScrollingWithMouse = isScrollControllerScrollingWithMouse;
+
+                if (isScrollControllerScrollingWithMouse)
+                {
+                    // Prevent the horizontal scroll controller from fading out while the user is scrolling with mouse with the vertical one.
+                    m_keepIndicatorsShowing = true;
+                    showIndicators = true;
+                }
+                else
+                {
+                    // Make the scroll controllers fade out, after the normal delay, if they are auto-hiding.
+                    m_keepIndicatorsShowing = false;
+                    hideIndicators = AreScrollControllersAutoHiding();
+                }
+            }
+
+            // IScrollController::CanScroll might have changed and affect the scroll controller's visibility
+            // when its visibility mode is Auto.
+            UpdateScrollControllersVisibility(false /*horizontalChange*/, true /*verticalChange*/);
+            UpdateVisualStates(true /*useTransitions*/, showIndicators, hideIndicators);
+        }
     }
 
     private void OnScrollPresenterAnchorRequested(object sender, ScrollingAnchorRequestedEventArgs args)
@@ -1659,19 +1715,26 @@ public class ScrollView : Control
 
     private void OnScrollPresenterExtentChanged(object sender, object args)
     {
-        throw new NotImplementedException();
+        ExtentChanged?.Invoke(this, args);
     }
 
-    private void OnScrollPresenterPropertyChanged(
-                                                                                 DependencyObject sender,
-         DependencyProperty args)
+    private void OnScrollPresenterPropertyChanged(DependencyObject sender, DependencyProperty args)
     {
         throw new NotImplementedException();
     }
 
     private void OnScrollPresenterScrollCompleted(object sender, ScrollingScrollCompletedEventArgs args)
     {
-        throw new NotImplementedException();
+        if (args.CorrelationId == m_horizontalAddScrollVelocityOffsetChangeCorrelationId)
+        {
+            m_horizontalAddScrollVelocityOffsetChangeCorrelationId = s_noOpCorrelationId;
+        }
+        else if (args.CorrelationId == m_verticalAddScrollVelocityOffsetChangeCorrelationId)
+        {
+            m_verticalAddScrollVelocityOffsetChangeCorrelationId = s_noOpCorrelationId;
+        }
+
+        ScrollCompleted?.Invoke(this, args);
     }
 
     private void OnScrollPresenterStateChanged(object sender, object args)
