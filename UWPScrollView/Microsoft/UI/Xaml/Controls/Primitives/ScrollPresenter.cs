@@ -1,9 +1,12 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Numerics;
 using Windows.Foundation;
+using Windows.UI.Composition;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
 using Windows.UI.Xaml.Markup;
+using Windows.UI.Xaml.Media;
 
 namespace Microsoft.UI.Xaml.Controls.Primitives;
 
@@ -32,6 +35,43 @@ public class ScrollPresenter : FrameworkElement, IScrollAnchorProvider
     public event TypedEventHandler<ScrollPresenter, object> ViewChanged;
 
     /// <summary>
+    /// Gets or sets a brush that provides the background of the <see cref="ScrollPresenter"/>.
+    /// </summary>
+    public Brush Background
+    {
+        get
+        {
+            throw new NotImplementedException();
+        }
+        set
+        {
+            throw new NotImplementedException();
+        }
+    }
+
+    /// <summary>
+    /// Gets a value that indicates the effective ability to scroll horizontally by means of user input.
+    /// </summary>
+    public ScrollingScrollMode ComputedHorizontalScrollMode
+    {
+        get
+        {
+            throw new NotImplementedException();
+        }
+    }
+
+    /// <summary>
+    /// Gets a value that indicates the effective ability to scroll vertically by means of user input.
+    /// </summary>
+    public ScrollingScrollMode ComputedVerticalScrollMode
+    {
+        get
+        {
+            throw new NotImplementedException();
+        }
+    }
+
+    /// <summary>
     /// Gets or sets the content that can be scrolled, panned, or zoomed.
     /// </summary>
     public UIElement? Content
@@ -47,9 +87,35 @@ public class ScrollPresenter : FrameworkElement, IScrollAnchorProvider
     }
 
     /// <summary>
+    /// Gets or sets a value that indicates whether the content prefers to scroll horizontally or vertically.
+    /// </summary>
+    public ScrollingContentOrientation ContentOrientation
+    {
+        get
+        {
+            throw new NotImplementedException();
+        }
+        set
+        {
+            throw new NotImplementedException();
+        }
+    }
+
+    /// <summary>
     /// Gets the most recently chosen <see cref="UIElement"/> for scroll anchoring after a layout pass, if any.
     /// </summary>
     public UIElement CurrentAnchor => throw new NotImplementedException();
+
+    /// <summary>
+    /// Gets a <see cref="CompositionPropertySet"/> of scrolling related property values.
+    /// </summary>
+    public CompositionPropertySet ExpressionAnimationSources
+    {
+        get
+        {
+            throw new NotImplementedException();
+        }
+    }
 
     /// <summary>
     /// Gets the vertical size of all the scrollable content in the <see cref="ScrollPresenter"/>.
@@ -68,6 +134,21 @@ public class ScrollPresenter : FrameworkElement, IScrollAnchorProvider
     public double ExtentWidth
     {
         get
+        {
+            throw new NotImplementedException();
+        }
+    }
+
+    /// <summary>
+    /// Gets or sets the ratio within the viewport where the anchor element is selected.
+    /// </summary>
+    public double HorizontalAnchorRatio
+    {
+        get
+        {
+            throw new NotImplementedException();
+        }
+        set
         {
             throw new NotImplementedException();
         }
@@ -109,6 +190,17 @@ public class ScrollPresenter : FrameworkElement, IScrollAnchorProvider
             throw new NotImplementedException();
         }
         set
+        {
+            throw new NotImplementedException();
+        }
+    }
+
+    /// <summary>
+    /// Gets the collection of snap points that affect the <see cref="HorizontalOffset"/> property.
+    /// </summary>
+    public IList<ScrollSnapPointBase> HorizontalSnapPoints
+    {
+        get
         {
             throw new NotImplementedException();
         }
