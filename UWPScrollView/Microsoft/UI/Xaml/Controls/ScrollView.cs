@@ -230,6 +230,11 @@ public class ScrollView : Control
         throw new NotImplementedException();
     }
 
+    private bool AreAllScrollControllersCollapsed()
+    {
+        throw new NotImplementedException();
+    }
+
     private void OnHideIndicatorsTimerTick(object sender, object args)
     {
         throw new NotImplementedException();
@@ -256,6 +261,11 @@ public class ScrollView : Control
     }
 
     private void OnVerticalScrollControllerPointerExited(object sender, PointerRoutedEventArgs args)
+    {
+        throw new NotImplementedException();
+    }
+
+    private void OnZoomAnimationStarting(object sender, ScrollingZoomAnimationStartingEventArgs args)
     {
         throw new NotImplementedException();
     }
