@@ -1,11 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using Windows.UI.Xaml.Controls;
 
 namespace Microsoft.UI.Xaml.Controls;
 
-public class ScrollView
+/// <summary>
+/// Represents a container that provides scroll, pan, and zoom support for its content.
+/// </summary>
+public class ScrollView : Control
 {
 }
