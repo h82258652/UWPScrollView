@@ -180,6 +180,21 @@ public class ScrollPresenter : FrameworkElement, IScrollAnchorProvider
     }
 
     /// <summary>
+    /// Gets or sets the <see cref="IScrollController"/> implementation that can drive the horizontal scrolling of the <see cref="ScrollPresenter"/>.
+    /// </summary>
+    public IScrollController? HorizontalScrollController
+    {
+        get
+        {
+            throw new NotImplementedException();
+        }
+        set
+        {
+            throw new NotImplementedException();
+        }
+    }
+
+    /// <summary>
     /// Gets or sets a value that determines how manipulation input influences scrolling behavior on the horizontal axis.
     /// </summary>
     public ScrollingScrollMode HorizontalScrollMode
@@ -283,6 +298,21 @@ public class ScrollPresenter : FrameworkElement, IScrollAnchorProvider
     public double VerticalOffset
     {
         get
+        {
+            throw new NotImplementedException();
+        }
+    }
+
+    /// <summary>
+    /// Gets or sets the <see cref="IScrollController"/> implementation that can drive the vertical scrolling of the <see cref="ScrollPresenter"/>.
+    /// </summary>
+    public IScrollController? VerticalScrollController
+    {
+        get
+        {
+            throw new NotImplementedException();
+        }
+        set
         {
             throw new NotImplementedException();
         }
