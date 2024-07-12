@@ -1,6 +1,7 @@
 ﻿using Microsoft.UI.Xaml.Controls.Primitives;
 using System;
 using System.Numerics;
+using Windows.Devices.Input;
 using Windows.System;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
@@ -25,6 +26,7 @@ public class ScrollView : Control
     private DispatcherTimer m_hideIndicatorsTimer;
     private IScrollController m_horizontalScrollController;
     private UIElement m_horizontalScrollControllerElement;
+    private bool m_isLeftMouseButtonPressedForFocus = false;
     private bool m_preferMouseIndicators = false;
     private UIElement m_scrollControllersSeparatorElement;
     private IScrollController m_verticalScrollController;
@@ -357,6 +359,11 @@ public class ScrollView : Control
         throw new NotImplementedException();
     }
 
+    private void OnCompositionTargetRendering(object sender, object args)
+    {
+        throw new NotImplementedException();
+    }
+
     private void OnHideIndicatorsTimerTick(object sender, object args)
     {
         throw new NotImplementedException();
@@ -380,6 +387,31 @@ public class ScrollView : Control
             hideIndicators: false,
             scrollControllersAutoHidingChanged: false,
             updateScrollControllersAutoHiding: true);
+    }
+
+    private void OnScrollViewPointerCanceled(object sender, PointerRoutedEventArgs args)
+    {
+        if (args.Pointer.PointerDeviceType == PointerDeviceType.Mouse)
+        {
+            m_isLeftMouseButtonPressedForFocus = false;
+        }
+    }
+
+    private void OnScrollViewPointerEntered(object sender, PointerRoutedEventArgs args)
+    {
+        if (args.Pointer.PointerDeviceType != PointerDeviceType.Touch)
+        {
+            // Mouse/Pen inputs dominate. If touch panning indicators are shown, switch to mouse indicators.
+            m_preferMouseIndicators = true;
+
+            UpdateVisualStates(
+                useTransitions: true,
+                showIndicators: true,
+                hideIndicators: false,
+                scrollControllersAutoHidingChanged: false,
+                updateScrollControllersAutoHiding: true,
+                onlyForAutoHidingScrollControllers: true);
+        }
     }
 
     private void OnScrollViewPointerMoved(object sender, PointerRoutedEventArgs args)
