@@ -21,7 +21,7 @@ public interface IScrollController
     /// <summary>
     /// Gets an instance of an <see cref="IScrollControllerPanningInfo"/> implementation that contains information related to content panning, or <see langword="null"/>.
     /// </summary>
-    IScrollControllerPanningInfo PanningInfo { get; }
+    IScrollControllerPanningInfo? PanningInfo { get; }
 
     /// <summary>
     /// Provides the <see cref="IScrollController"/> with the option of customizing the animation used to perform its scroll request.

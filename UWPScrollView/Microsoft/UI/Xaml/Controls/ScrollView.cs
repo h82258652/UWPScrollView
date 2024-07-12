@@ -1,5 +1,6 @@
 ﻿using Microsoft.UI.Xaml.Controls.Primitives;
 using System;
+using System.Collections.Generic;
 using System.Numerics;
 using Windows.Devices.Input;
 using Windows.Foundation;
@@ -111,7 +112,14 @@ public class ScrollView : Control
         typeof(ScrollView),
         new PropertyMetadata(0.1d, OnMinZoomFactorPropertyChanged));
 
-    public static readonly DependencyProperty VerticalScrollBarVisibilityProperty;
+    /// <summary>
+    /// Identifies the <see cref="VerticalScrollBarVisibility"/> dependency property.
+    /// </summary>
+    public static readonly DependencyProperty VerticalScrollBarVisibilityProperty = DependencyProperty.Register(
+        nameof(VerticalScrollBarVisibility),
+        typeof(ScrollingScrollBarVisibility),
+        typeof(ScrollView),
+        new PropertyMetadata(ScrollingScrollBarVisibility.Auto, OnVerticalScrollBarVisibilityPropertyChanged));
 
     /// <summary>
     /// Identifies the <see cref="VerticalScrollMode"/> dependency property.
@@ -158,6 +166,12 @@ public class ScrollView : Control
 
     private ScrollPresenter? _scrollPresenter;
 
+    /// <summary>
+    /// List of temporary ScrollViewBringIntoViewOperation instances used to track expected
+    /// ScrollPresenter::BringingIntoView occurrences due to navigation.
+    /// </summary>
+    private List<ScrollViewBringIntoViewOperation> m_bringIntoViewOperations;
+
     private FocusInputDeviceKind m_focusInputDeviceKind = FocusInputDeviceKind.None;
 
     private DispatcherTimer m_hideIndicatorsTimer;
@@ -166,7 +180,27 @@ public class ScrollView : Control
 
     private UIElement m_horizontalScrollControllerElement;
 
+    /// <summary>
+    /// Set to the values of IScrollController::IsScrollingWithMouse.
+    /// </summary>
+    private bool m_isHorizontalScrollControllerScrollingWithMouse;
+
     private bool m_isLeftMouseButtonPressedForFocus = false;
+
+    /// <summary>
+    /// Set to True when the pointer is over the optional scroll controllers.
+    /// </summary>
+    private bool m_isPointerOverHorizontalScrollController;
+
+    /// <summary>
+    /// Set to True when the pointer is over the optional scroll controllers.
+    /// </summary>
+    private bool m_isPointerOverVerticalScrollController;
+
+    /// <summary>
+    /// Set to the values of IScrollController::IsScrollingWithMouse.
+    /// </summary>
+    private bool m_isVerticalScrollControllerScrollingWithMouse;
 
     /// <summary>
     /// Set to True to prevent the normal fade-out of the scrolling indicators.
@@ -195,14 +229,49 @@ public class ScrollView : Control
     }
 
     /// <summary>
+    /// Occurs when the <see cref="ScrollView"/> is about to select an anchor element.
+    /// </summary>
+    public event TypedEventHandler<ScrollView, ScrollingAnchorRequestedEventArgs> AnchorRequested;
+
+    /// <summary>
+    /// Occurs at the beginning of a bring-into-view request participation. Allows customization of that participation.
+    /// </summary>
+    public event TypedEventHandler<ScrollView, ScrollingBringingIntoViewEventArgs> BringingIntoView;
+
+    /// <summary>
     /// Occurs when either the <see cref="ExtentWidth"/> or <see cref="ExtentHeight"/> properties has changed.
     /// </summary>
     public event TypedEventHandler<ScrollView, object> ExtentChanged;
 
     /// <summary>
+    /// Occurs when a call to <see cref="ScrollTo"/> or <see cref="ScrollBy"/> triggers an animation.
+    /// </summary>
+    public event TypedEventHandler<ScrollView, ScrollingScrollAnimationStartingEventArgs> ScrollAnimationStarting;
+
+    /// <summary>
+    /// Occurs when a <see cref="ScrollTo"/>, <see cref="ScrollBy"/>, or <see cref="AddScrollVelocity"/> asynchronous operation ends. Provides the original correlation ID.
+    /// </summary>
+    public event TypedEventHandler<ScrollView, ScrollingScrollCompletedEventArgs> ScrollCompleted;
+
+    /// <summary>
     /// Occurs when the current interaction state of the control has changed.
     /// </summary>
     public event TypedEventHandler<ScrollView, object> StateChanged;
+
+    /// <summary>
+    /// Occurs when manipulations such as scrolling and zooming have caused the view to change.
+    /// </summary>
+    public event TypedEventHandler<ScrollView, object> ViewChanged;
+
+    /// <summary>
+    /// Occurs when a call to <see cref="ZoomTo"/> or <see cref="ZoomBy"/> triggers an animation.
+    /// </summary>
+    public event TypedEventHandler<ScrollView, ScrollingZoomAnimationStartingEventArgs> ZoomAnimationStarting;
+
+    /// <summary>
+    /// Occurs when a <see cref="ZoomTo"/>, <see cref="ZoomBy"/>, or <see cref="AddZoomVelocity"/> asynchronous operation ends. Provides the original correlation ID.
+    /// </summary>
+    public event TypedEventHandler<ScrollView, ScrollingZoomCompletedEventArgs> ZoomCompleted;
 
     /// <summary>
     /// Gets a value that indicates the effective visibility of the horizontal scrollbar.
@@ -302,6 +371,17 @@ public class ScrollView : Control
         {
             ValidateAnchorRatio(value);
             SetValue(HorizontalAnchorRatioProperty, value);
+        }
+    }
+
+    /// <summary>
+    /// Gets the distance the content has been scrolled horizontally.
+    /// </summary>
+    public double HorizontalOffset
+    {
+        get
+        {
+            throw new NotImplementedException();
         }
     }
 
@@ -413,12 +493,83 @@ public class ScrollView : Control
     public ScrollingInteractionState State => _scrollPresenter?.State ?? ScrollingInteractionState.Idle;
 
     /// <summary>
+    /// Determines the vertical position of the <see cref="ScrollView"/>'s anchor point with respect to the viewport. By default, the <see cref="ScrollView"/> selects an element as its <see cref="CurrentAnchor"/> by identifying the element in its viewport nearest to the anchor point.
+    /// </summary>
+    public double VerticalAnchorRatio
+    {
+        get
+        {
+            throw new NotImplementedException();
+        }
+        set
+        {
+            throw new NotImplementedException();
+        }
+    }
+
+    /// <summary>
+    /// Gets the distance the content has been scrolled vertically.
+    /// </summary>
+    public double VerticalOffset
+    {
+        get
+        {
+            throw new NotImplementedException();
+        }
+    }
+
+    /// <summary>
+    /// Gets or sets a value that indicates whether a scroll controller should be displayed for the vertical scrolling direction.
+    /// </summary>
+    public ScrollingScrollBarVisibility VerticalScrollBarVisibility
+    {
+        get
+        {
+            throw new NotImplementedException();
+        }
+        set
+        {
+            throw new NotImplementedException();
+        }
+    }
+
+    /// <summary>
+    /// Gets or sets a value that indicates whether or not to chain vertical scrolling to an outer scroll control.
+    /// </summary>
+    public ScrollingChainMode VerticalScrollChainMode
+    {
+        get
+        {
+            throw new NotImplementedException();
+        }
+        set
+        {
+            throw new NotImplementedException();
+        }
+    }
+
+    /// <summary>
     /// Gets or sets a value that determines how manipulation input influences scrolling behavior on the horizontal axis.
     /// </summary>
     public ScrollingScrollMode VerticalScrollMode
     {
         get => (ScrollingScrollMode)GetValue(VerticalScrollModeProperty);
         set => SetValue(VerticalScrollModeProperty, value);
+    }
+
+    /// <summary>
+    /// Gets or sets a value that indicates whether the scroll rail is enabled for the vertical axis.
+    /// </summary>
+    public ScrollingRailMode VerticalScrollRailMode
+    {
+        get
+        {
+            throw new NotImplementedException();
+        }
+        set
+        {
+            throw new NotImplementedException();
+        }
     }
 
     /// <summary>
@@ -645,6 +796,11 @@ public class ScrollView : Control
     }
 
     private static void OnMinZoomFactorPropertyChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+    {
+        throw new NotImplementedException();
+    }
+
+    private static void OnVerticalScrollBarVisibilityPropertyChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
     {
         throw new NotImplementedException();
     }
