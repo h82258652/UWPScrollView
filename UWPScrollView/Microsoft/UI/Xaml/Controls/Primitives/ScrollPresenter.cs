@@ -27,6 +27,7 @@ public class ScrollPresenter : FrameworkElement, IScrollAnchorProvider
 
     private float m_endOfInertiaZoomFactor = 1;
 
+    private CompositionPropertySet m_expressionAnimationSources;
     private ScrollingInteractionState m_state = ScrollingInteractionState.Idle;
     private double m_unzoomedExtentHeight;
 
@@ -139,7 +140,10 @@ public class ScrollPresenter : FrameworkElement, IScrollAnchorProvider
     {
         get
         {
-            throw new NotImplementedException();
+            SetupInteractionTrackerBoundaries();
+            EnsureExpressionAnimationSources();
+
+            return m_expressionAnimationSources;
         }
     }
 
