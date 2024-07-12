@@ -5,7 +5,7 @@
 /// </summary>
 public class SnapPointBase
 {
-    private SnapPointBase()
+    internal SnapPointBase()
     {
     }
 }

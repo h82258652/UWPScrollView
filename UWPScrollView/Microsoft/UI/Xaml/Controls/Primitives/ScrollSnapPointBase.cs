@@ -5,9 +5,9 @@ namespace Microsoft.UI.Xaml.Controls.Primitives;
 /// <summary>
 /// Represents the base class for scrolling snap points used by a <see cref="ScrollPresenter"/> or other scrolling control.
 /// </summary>
-public class ScrollSnapPointBase
+public class ScrollSnapPointBase : SnapPointBase
 {
-    private ScrollSnapPointBase()
+    internal ScrollSnapPointBase()
     {
     }
 

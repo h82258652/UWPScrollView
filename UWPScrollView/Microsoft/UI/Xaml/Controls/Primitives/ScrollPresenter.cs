@@ -266,6 +266,43 @@ public class ScrollPresenter : FrameworkElement, IScrollAnchorProvider
     }
 
     /// <summary>
+    /// Gets a value that indicates the amount of scaling currently applied to content.
+    /// </summary>
+    public float ZoomFactor
+    {
+        get
+        {
+            throw new NotImplementedException();
+        }
+    }
+
+    /// <summary>
+    /// Gets or sets a value that indicates the ability to zoom in and out by means of user input.
+    /// </summary>
+    public ScrollingZoomMode ZoomMode
+    {
+        get
+        {
+            throw new NotImplementedException();
+        }
+        set
+        {
+            throw new NotImplementedException();
+        }
+    }
+
+    /// <summary>
+    /// Gets the collection of snap points that affect the <see cref="ZoomFactor"/> property.
+    /// </summary>
+    public IList<ZoomSnapPointBase> ZoomSnapPoints
+    {
+        get
+        {
+            throw new NotImplementedException();
+        }
+    }
+
+    /// <summary>
     /// Asynchronously adds velocity to a scroll action.
     /// </summary>
     /// <param name="offsetsVelocity">The rate of the scroll offset change.</param>
