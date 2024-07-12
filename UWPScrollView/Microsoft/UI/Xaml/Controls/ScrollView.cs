@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.UI.Xaml.Controls.Primitives;
+using System;
 using System.Numerics;
 using Windows.UI.Xaml.Controls;
 
@@ -9,6 +10,8 @@ namespace Microsoft.UI.Xaml.Controls;
 /// </summary>
 public class ScrollView : Control
 {
+    private ScrollPresenter _scrollPresenter;
+
     /// <summary>
     /// Gets or sets a value that determines how manipulation input influences scrolling behavior on the horizontal axis.
     /// </summary>
@@ -49,6 +52,50 @@ public class ScrollView : Control
             throw new NotImplementedException();
         }
         set
+        {
+            throw new NotImplementedException();
+        }
+    }
+
+    /// <summary>
+    /// Gets the vertical length of the content that can be scrolled.
+    /// </summary>
+    public double ScrollableHeight
+    {
+        get
+        {
+            throw new NotImplementedException();
+        }
+    }
+
+    /// <summary>
+    /// Gets the horizontal length of the content that can be scrolled.
+    /// </summary>
+    public double ScrollableWidth
+    {
+        get
+        {
+            throw new NotImplementedException();
+        }
+    }
+
+    /// <summary>
+    /// Gets the loaded <see cref="ScrollPresenter"/> control template part.
+    /// </summary>
+    public ScrollPresenter? ScrollPresenter
+    {
+        get
+        {
+            throw new NotImplementedException();
+        }
+    }
+
+    /// <summary>
+    /// Gets the current interaction state of the control.
+    /// </summary>
+    public ScrollingInteractionState State
+    {
+        get
         {
             throw new NotImplementedException();
         }
