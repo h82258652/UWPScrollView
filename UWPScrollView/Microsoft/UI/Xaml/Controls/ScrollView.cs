@@ -174,13 +174,7 @@ public class ScrollView : Control
     /// <summary>
     /// Gets the horizontal size of the viewable content in the <see cref="ScrollView"/>.
     /// </summary>
-    public double ViewportWidth
-    {
-        get
-        {
-            throw new NotImplementedException();
-        }
-    }
+    public double ViewportWidth => _scrollPresenter?.ViewportWidth ?? 0;
 
     /// <summary>
     /// Gets or sets a value that indicates whether or not to chain zooming to an outer scroll control.

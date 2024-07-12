@@ -104,7 +104,7 @@ public class ScrollPresenter : FrameworkElement, IScrollAnchorProvider
     /// <summary>
     /// Gets the most recently chosen <see cref="UIElement"/> for scroll anchoring after a layout pass, if any.
     /// </summary>
-    public UIElement CurrentAnchor => throw new NotImplementedException();
+    public UIElement? CurrentAnchor => throw new NotImplementedException();
 
     /// <summary>
     /// Gets a <see cref="CompositionPropertySet"/> of scrolling related property values.
@@ -255,9 +255,46 @@ public class ScrollPresenter : FrameworkElement, IScrollAnchorProvider
     }
 
     /// <summary>
+    /// Determines the vertical position of the <see cref="ScrollPresenter"/>'s anchor point with respect to the viewport. By default, the <see cref="ScrollPresenter"/> selects an element as its <see cref="CurrentAnchor"/> by identifying the element in its viewport nearest to the anchor point.
+    /// </summary>
+    public double VerticalAnchorRatio
+    {
+        get
+        {
+            throw new NotImplementedException();
+        }
+        set
+        {
+            throw new NotImplementedException();
+        }
+    }
+
+    /// <summary>
     /// Gets the distance the content has been scrolled vertically.
     /// </summary>
     public double VerticalOffset
+    {
+        get
+        {
+            throw new NotImplementedException();
+        }
+    }
+
+    /// <summary>
+    /// Gets the vertical size of the viewable content in the <see cref="ScrollPresenter"/>.
+    /// </summary>
+    public double ViewportHeight
+    {
+        get
+        {
+            throw new NotImplementedException();
+        }
+    }
+
+    /// <summary>
+    /// Gets the horizontal size of the viewable content in the <see cref="ScrollPresenter"/>.
+    /// </summary>
+    public double ViewportWidth
     {
         get
         {
