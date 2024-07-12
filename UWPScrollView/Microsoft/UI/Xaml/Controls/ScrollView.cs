@@ -15,6 +15,7 @@ namespace Microsoft.UI.Xaml.Controls;
 /// </summary>
 public class ScrollView : Control
 {
+    public static readonly DependencyProperty ContentProperty = DependencyProperty.Register(nameof(Content), typeof(UIElement), typeof(ScrollView), new PropertyMetadata(null, OnContentPropertyChanged));
     private const string s_horizontalScrollBarPartName = "PART_HorizontalScrollBar";
     private const string s_IScrollAnchorProviderNotImpl = "Template part named PART_ScrollPresenter does not implement IScrollAnchorProvider.";
     private const int s_noOpCorrelationId = -1;
@@ -81,16 +82,10 @@ public class ScrollView : Control
     /// <summary>
     /// Gets or sets the content that can be scrolled, panned, or zoomed.
     /// </summary>
-    public UIElement Content
+    public UIElement? Content
     {
-        get
-        {
-            throw new NotImplementedException();
-        }
-        set
-        {
-            throw new NotImplementedException();
-        }
+        get => (UIElement?)GetValue(ContentProperty);
+        set => SetValue(ContentProperty, value);
     }
 
     /// <summary>
@@ -371,6 +366,12 @@ public class ScrollView : Control
             onlyForAutoHidingScrollControllers: true);
     }
 
+    private static void OnContentPropertyChanged(DependencyObject sender, DependencyPropertyChangedEventArgs args)
+    {
+        ScrollView owner = (ScrollView)sender;
+        owner.OnPropertyChanged(args);
+    }
+
     private bool AreAllScrollControllersCollapsed()
     {
         throw new NotImplementedException();
@@ -489,6 +490,11 @@ public class ScrollView : Control
     }
 
     private void OnHorizontalScrollControllerPointerEntered(object sender, PointerRoutedEventArgs args)
+    {
+        throw new NotImplementedException();
+    }
+
+    private void OnPropertyChanged(DependencyPropertyChangedEventArgs args)
     {
         throw new NotImplementedException();
     }
