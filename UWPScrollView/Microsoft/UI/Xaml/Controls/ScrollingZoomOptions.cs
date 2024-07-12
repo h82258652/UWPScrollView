@@ -13,7 +13,7 @@ public class ScrollingZoomOptions
     /// <param name="animationMode">A value that indicates whether or not an animation is played for the zoom factor change.</param>
     public ScrollingZoomOptions(ScrollingAnimationMode animationMode)
     {
-        throw new NotImplementedException();
+        AnimationMode = animationMode;
     }
 
     /// <summary>
@@ -24,36 +24,17 @@ public class ScrollingZoomOptions
     /// <exception cref="NotImplementedException">A value that indicates whether snap points are ignored or respected during the zoom factor change.</exception>
     public ScrollingZoomOptions(ScrollingAnimationMode animationMode, ScrollingSnapPointsMode snapPointsMode)
     {
-        throw new NotImplementedException();
+        AnimationMode = animationMode;
+        SnapPointsMode = snapPointsMode;
     }
 
     /// <summary>
     /// Gets or sets a value that indicates whether or not an animation is played for the zoom factor change.
     /// </summary>
-    public ScrollingAnimationMode AnimationMode
-    {
-        get
-        {
-            throw new NotImplementedException();
-        }
-        set
-        {
-            throw new NotImplementedException();
-        }
-    }
+    public ScrollingAnimationMode AnimationMode { get; set; } = ScrollingAnimationMode.Auto;
 
     /// <summary>
     /// Gets or sets a value that indicates whether snap points are ignored or respected during the zoom factor change.
     /// </summary>
-    public ScrollingSnapPointsMode SnapPointsMode
-    {
-        get
-        {
-            throw new NotImplementedException();
-        }
-        set
-        {
-            throw new NotImplementedException();
-        }
-    }
+    public ScrollingSnapPointsMode SnapPointsMode { get; set; } = ScrollingSnapPointsMode.Default;
 }
