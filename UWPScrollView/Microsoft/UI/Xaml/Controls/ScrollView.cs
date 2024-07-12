@@ -80,10 +80,32 @@ public class ScrollView : Control
         typeof(ScrollView),
         new PropertyMetadata(0d, OnHorizontalAnchorRatioPropertyChanged));
 
-    public static readonly DependencyProperty HorizontalScrollBarVisibilityProperty;
-    public static readonly DependencyProperty HorizontalScrollModeProperty;
+    /// <summary>
+    /// Identifies the <see cref="HorizontalScrollBarVisibility"/> dependency property.
+    /// </summary>
+    public static readonly DependencyProperty HorizontalScrollBarVisibilityProperty = DependencyProperty.Register(
+        nameof(HorizontalScrollBarVisibility),
+        typeof(ScrollingScrollBarVisibility),
+        typeof(ScrollView),
+        new PropertyMetadata(ScrollingScrollBarVisibility.Auto, OnHorizontalScrollBarVisibilityPropertyChanged));
 
-    public static readonly DependencyProperty HorizontalScrollRailModeProperty;
+    /// <summary>
+    /// Identifies the <see cref="HorizontalScrollMode"/> dependency property.
+    /// </summary>
+    public static readonly DependencyProperty HorizontalScrollModeProperty = DependencyProperty.Register(
+        nameof(HorizontalScrollMode),
+        typeof(ScrollingScrollMode),
+        typeof(ScrollView),
+        new PropertyMetadata(ScrollingScrollMode.Auto, OnHorizontalScrollModePropertyChanged));
+
+    /// <summary>
+    /// Identifies the <see cref="HorizontalScrollRailMode"/> dependency property.
+    /// </summary>
+    public static readonly DependencyProperty HorizontalScrollRailModeProperty = DependencyProperty.Register(
+        nameof(HorizontalScrollRailMode),
+        typeof(ScrollingRailMode),
+        typeof(ScrollView),
+        new PropertyMetadata(ScrollingRailMode.Enabled, OnHorizontalScrollRailModePropertyChanged));
 
     /// <summary>
     /// Identifies the <see cref="IgnoredInputKinds"/> dependency property.
@@ -784,6 +806,21 @@ public class ScrollView : Control
         throw new NotImplementedException();
     }
 
+    private static void OnHorizontalScrollBarVisibilityPropertyChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+    {
+        throw new NotImplementedException();
+    }
+
+    private static void OnHorizontalScrollModePropertyChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+    {
+        throw new NotImplementedException();
+    }
+
+    private static void OnHorizontalScrollRailModePropertyChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+    {
+        throw new NotImplementedException();
+    }
+
     private static void OnIgnoredInputKindsPropertyChanged(DependencyObject sender, DependencyPropertyChangedEventArgs args)
     {
         ScrollView owner = (ScrollView)sender;
@@ -903,6 +940,11 @@ public class ScrollView : Control
     }
 
     private void HandleScrollControllerPointerEntered(bool isForHorizontalScrollController)
+    {
+        throw new NotImplementedException();
+    }
+
+    private void HandleScrollControllerPointerExited(bool isForHorizontalScrollController)
     {
         throw new NotImplementedException();
     }
@@ -1038,12 +1080,12 @@ public class ScrollView : Control
 
     private void OnVerticalScrollControllerPointerExited(object sender, PointerRoutedEventArgs args)
     {
-        throw new NotImplementedException();
+        HandleScrollControllerPointerExited(isForHorizontalScrollController: false);
     }
 
     private void OnZoomAnimationStarting(object sender, ScrollingZoomAnimationStartingEventArgs args)
     {
-        throw new NotImplementedException();
+        ZoomAnimationStarting?.Invoke(this, args);
     }
 
     private void UnhookCompositionTargetRendering()
@@ -1071,7 +1113,22 @@ public class ScrollView : Control
         throw new NotImplementedException();
     }
 
+    private void UpdateScrollControllersAutoHiding(bool forceUpdate = false)
+    {
+        throw new NotImplementedException();
+    }
+
+    private void UpdateScrollControllersSeparatorVisualState(bool useTransitions = true, bool scrollControllersAutoHidingChanged = false)
+    {
+        throw new NotImplementedException();
+    }
+
     private void UpdateScrollControllersVisibility(bool horizontalChange, bool verticalChange)
+    {
+        throw new NotImplementedException();
+    }
+
+    private void UpdateScrollControllersVisualState(bool useTransitions = true, bool showIndicators = false, bool hideIndicators = false)
     {
         throw new NotImplementedException();
     }
@@ -1084,6 +1141,17 @@ public class ScrollView : Control
         bool updateScrollControllersAutoHiding = false,
         bool onlyForAutoHidingScrollControllers = false)
     {
-        throw new NotImplementedException();
+        if (updateScrollControllersAutoHiding)
+        {
+            UpdateScrollControllersAutoHiding();
+        }
+
+        if (onlyForAutoHidingScrollControllers && !AreScrollControllersAutoHiding())
+        {
+            return;
+        }
+
+        UpdateScrollControllersVisualState(useTransitions, showIndicators, hideIndicators);
+        UpdateScrollControllersSeparatorVisualState(useTransitions, scrollControllersAutoHidingChanged);
     }
 }
