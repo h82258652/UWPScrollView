@@ -375,7 +375,7 @@ public class ScrollPresenter : FrameworkElement, IScrollAnchorProvider
     /// <returns>A correlation ID number used to associate this method call with corresponding events.</returns>
     public int ScrollBy(double horizontalOffsetDelta, double verticalOffsetDelta)
     {
-        throw new NotImplementedException();
+        return ScrollBy(horizontalOffsetDelta, verticalOffsetDelta, null);
     }
 
     /// <summary>
@@ -385,7 +385,7 @@ public class ScrollPresenter : FrameworkElement, IScrollAnchorProvider
     /// <param name="verticalOffsetDelta">The offset to scroll by vertically.</param>
     /// <param name="options">Options that specify whether or not animations are enabled and snap points are respected.</param>
     /// <returns>A correlation ID number used to associate this method call with corresponding events.</returns>
-    public int ScrollBy(double horizontalOffsetDelta, double verticalOffsetDelta, ScrollingScrollOptions options)
+    public int ScrollBy(double horizontalOffsetDelta, double verticalOffsetDelta, ScrollingScrollOptions? options)
     {
         throw new NotImplementedException();
     }
@@ -398,7 +398,7 @@ public class ScrollPresenter : FrameworkElement, IScrollAnchorProvider
     /// <returns>A correlation ID number used to associate this method call with corresponding events.</returns>
     public int ScrollTo(double horizontalOffset, double verticalOffset)
     {
-        throw new NotImplementedException();
+        return ScrollTo(horizontalOffset, verticalOffset, null);
     }
 
     /// <summary>
@@ -408,7 +408,7 @@ public class ScrollPresenter : FrameworkElement, IScrollAnchorProvider
     /// <param name="verticalOffset">The vertical offset to scroll to.</param>
     /// <param name="options">Options that specify whether or not animations are enabled and snap points are respected.</param>
     /// <returns>A correlation ID number used to associate this method call with corresponding events.</returns>
-    public int ScrollTo(double horizontalOffset, double verticalOffset, ScrollingScrollOptions options)
+    public int ScrollTo(double horizontalOffset, double verticalOffset, ScrollingScrollOptions? options)
     {
         throw new NotImplementedException();
     }
