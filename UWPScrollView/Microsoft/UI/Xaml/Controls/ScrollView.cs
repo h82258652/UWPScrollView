@@ -15,10 +15,18 @@ namespace Microsoft.UI.Xaml.Controls;
 /// </summary>
 public class ScrollView : Control
 {
+    public static readonly DependencyProperty ComputedHorizontalScrollBarVisibilityProperty;
+
+    public static readonly DependencyProperty ComputedHorizontalScrollModeProperty;
+
     /// <summary>
     /// Identifies the <see cref="ComputedVerticalScrollBarVisibility"/> dependency property.
     /// </summary>
     public static readonly DependencyProperty ComputedVerticalScrollBarVisibilityProperty = DependencyProperty.Register(nameof(ComputedVerticalScrollBarVisibility), typeof(Visibility), typeof(ScrollView), new PropertyMetadata(Visibility.Collapsed, OnComputedVerticalScrollBarVisibilityPropertyChanged));
+
+    public static readonly DependencyProperty ComputedVerticalScrollModeProperty;
+
+    public static readonly DependencyProperty ContentOrientationProperty;
 
     /// <summary>
     /// Identifies the <see cref="Content"/> dependency property.
@@ -106,7 +114,7 @@ public class ScrollView : Control
     {
         get
         {
-            throw new NotImplementedException();
+            return (Visibility)GetValue(ComputedHorizontalScrollBarVisibilityProperty);
         }
     }
 
@@ -117,7 +125,7 @@ public class ScrollView : Control
     {
         get
         {
-            throw new NotImplementedException();
+            return (ScrollingScrollMode)GetValue(ComputedHorizontalScrollModeProperty);
         }
     }
 
@@ -139,7 +147,7 @@ public class ScrollView : Control
     {
         get
         {
-            throw new NotImplementedException();
+            return (ScrollingScrollMode)GetValue(ComputedVerticalScrollModeProperty);
         }
     }
 
@@ -159,11 +167,11 @@ public class ScrollView : Control
     {
         get
         {
-            throw new NotImplementedException();
+            return (ScrollingContentOrientation)GetValue(ContentOrientationProperty);
         }
         set
         {
-            throw new NotImplementedException();
+            SetValue(ContentOrientationProperty, value);
         }
     }
 
@@ -194,7 +202,7 @@ public class ScrollView : Control
     {
         get
         {
-            throw new NotImplementedException();
+            return (double)GetValue(HorizontalAnchorRatioProperty);
         }
         set
         {
@@ -252,10 +260,7 @@ public class ScrollView : Control
     /// </summary>
     public double MaxZoomFactor
     {
-        get
-        {
-            throw new NotImplementedException();
-        }
+        get => (double)GetValue(MaxZoomFactorProperty);
         set
         {
             throw new NotImplementedException();
@@ -294,6 +299,8 @@ public class ScrollView : Control
     /// </summary>
     public ScrollingInteractionState State => _scrollPresenter?.State ?? ScrollingInteractionState.Idle;
 
+    public static readonly DependencyProperty VerticalScrollModeProperty;
+
     /// <summary>
     /// Gets or sets a value that determines how manipulation input influences scrolling behavior on the horizontal axis.
     /// </summary>
@@ -301,7 +308,7 @@ public class ScrollView : Control
     {
         get
         {
-            throw new NotImplementedException();
+            return (ScrollingScrollMode)GetValue(VerticalScrollModeProperty);
         }
         set
         {
@@ -324,14 +331,8 @@ public class ScrollView : Control
     /// </summary>
     public ScrollingChainMode ZoomChainMode
     {
-        get
-        {
-            throw new NotImplementedException();
-        }
-        set
-        {
-            throw new NotImplementedException();
-        }
+        get => (ScrollingChainMode)GetValue(ZoomChainModeProperty);
+        set => SetValue(ZoomChainModeProperty, value);
     }
 
     /// <summary>
@@ -344,14 +345,8 @@ public class ScrollView : Control
     /// </summary>
     public ScrollingZoomMode ZoomMode
     {
-        get
-        {
-            throw new NotImplementedException();
-        }
-        set
-        {
-            throw new NotImplementedException();
-        }
+        get => (ScrollingZoomMode)GetValue(ZoomModeProperty);
+        set => SetValue(ZoomModeProperty, value);
     }
 
     /// <summary>
@@ -362,7 +357,7 @@ public class ScrollView : Control
     /// <returns>A correlation ID number used to associate this method call with corresponding events.</returns>
     public int AddScrollVelocity(Vector2 offsetsVelocity, Vector2? inertiaDecayRate)
     {
-        throw new NotImplementedException();
+        return _scrollPresenter?.AddScrollVelocity(offsetsVelocity, inertiaDecayRate) ?? s_noOpCorrelationId;
     }
 
     /// <summary>
@@ -374,7 +369,7 @@ public class ScrollView : Control
     /// <returns>A correlation ID number used to associate this method call with corresponding events.</returns>
     public int AddZoomVelocity(float zoomFactorVelocity, Vector2? centerPoint, float? inertiaDecayRate)
     {
-        throw new NotImplementedException();
+        return _scrollPresenter?.AddZoomVelocity(zoomFactorVelocity, centerPoint, inertiaDecayRate) ?? s_noOpCorrelationId;
     }
 
     /// <summary>
@@ -431,7 +426,7 @@ public class ScrollView : Control
     /// <returns>A correlation ID number used to associate this method call with corresponding events.</returns>
     public int ZoomBy(float zoomFactorDelta, Vector2? centerPoint)
     {
-        throw new NotImplementedException();
+        return _scrollPresenter?.ZoomBy(zoomFactorDelta, centerPoint) ?? s_noOpCorrelationId;
     }
 
     /// <summary>
@@ -441,9 +436,9 @@ public class ScrollView : Control
     /// <param name="centerPoint">The center point of the zoom factor change.</param>
     /// <param name="options">Options that specify whether or not animations are enabled and snap points are respected.</param>
     /// <returns>A correlation ID number used to associate this method call with corresponding events.</returns>
-    public int ZoomBy(float zoomFactorDelta, Vector2? centerPoint, ScrollingZoomOptions options)
+    public int ZoomBy(float zoomFactorDelta, Vector2? centerPoint, ScrollingZoomOptions? options)
     {
-        throw new NotImplementedException();
+        return _scrollPresenter?.ZoomBy(zoomFactorDelta, centerPoint, options) ?? s_noOpCorrelationId;
     }
 
     /// <inheritdoc/>
