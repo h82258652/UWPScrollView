@@ -104,24 +104,12 @@ public class ScrollView : Control
     /// <summary>
     /// Gets the vertical length of the content that can be scrolled.
     /// </summary>
-    public double ScrollableHeight
-    {
-        get
-        {
-            throw new NotImplementedException();
-        }
-    }
+    public double ScrollableHeight => _scrollPresenter?.ScrollableHeight ?? 0;
 
     /// <summary>
     /// Gets the horizontal length of the content that can be scrolled.
     /// </summary>
-    public double ScrollableWidth
-    {
-        get
-        {
-            throw new NotImplementedException();
-        }
-    }
+    public double ScrollableWidth => _scrollPresenter?.ScrollableWidth ?? 0;
 
     /// <summary>
     /// Gets the loaded <see cref="ScrollPresenter"/> control template part.
