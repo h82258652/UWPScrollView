@@ -236,6 +236,21 @@ public class ScrollPresenter : FrameworkElement, IScrollAnchorProvider
     }
 
     /// <summary>
+    /// Gets or sets the kinds of user input the control does not respond to.
+    /// </summary>
+    public ScrollingInputKinds IgnoredInputKinds
+    {
+        get
+        {
+            throw new NotImplementedException();
+        }
+        set
+        {
+            throw new NotImplementedException();
+        }
+    }
+
+    /// <summary>
     /// Gets or sets the maximum value for the read-only <see cref="ZoomFactor"/> property.
     /// </summary>
     public double MaxZoomFactor
