@@ -294,6 +294,41 @@ public class ScrollView : Control
         throw new NotImplementedException();
     }
 
+    private void GoToState(string stateName, bool useTransitions = true)
+    {
+        throw new NotImplementedException();
+    }
+
+    private void HookCompositionTargetRendering()
+    {
+        throw new NotImplementedException();
+    }
+
+    private void HookHorizontalScrollControllerEvents()
+    {
+        throw new NotImplementedException();
+    }
+
+    private void HookScrollPresenterEvents()
+    {
+        throw new NotImplementedException();
+    }
+
+    private void HookScrollViewEvents()
+    {
+        throw new NotImplementedException();
+    }
+
+    private void HookUISettingsEvent()
+    {
+        throw new NotImplementedException();
+    }
+
+    private void HookVerticalScrollControllerEvents()
+    {
+        throw new NotImplementedException();
+    }
+
     private void OnHideIndicatorsTimerTick(object sender, object args)
     {
         throw new NotImplementedException();
@@ -325,6 +360,31 @@ public class ScrollView : Control
     }
 
     private void OnZoomAnimationStarting(object sender, ScrollingZoomAnimationStartingEventArgs args)
+    {
+        throw new NotImplementedException();
+    }
+
+    private void UnhookCompositionTargetRendering()
+    {
+        throw new NotImplementedException();
+    }
+
+    private void UnhookHorizontalScrollControllerEvents(bool isForDestructor)
+    {
+        throw new NotImplementedException();
+    }
+
+    private void UnhookScrollPresenterEvents(bool isForDestructor)
+    {
+        throw new NotImplementedException();
+    }
+
+    private void UnhookScrollViewEvents()
+    {
+        throw new NotImplementedException();
+    }
+
+    private void UnhookVerticalScrollControllerEvents(bool isForDestructor)
     {
         throw new NotImplementedException();
     }
