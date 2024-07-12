@@ -262,13 +262,7 @@ public class ScrollView : Control
     /// <summary>
     /// Gets a value that indicates the amount of scaling currently applied to content.
     /// </summary>
-    public float ZoomFactor
-    {
-        get
-        {
-            throw new NotImplementedException();
-        }
-    }
+    public float ZoomFactor => _scrollPresenter?.ZoomFactor ?? 0;
 
     /// <summary>
     /// Asynchronously scrolls by the specified delta amount with animations enabled and snap points respected.
