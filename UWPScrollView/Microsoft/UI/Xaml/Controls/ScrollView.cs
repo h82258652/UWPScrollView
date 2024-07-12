@@ -46,9 +46,14 @@ public class ScrollView : Control
     public static readonly DependencyProperty MinZoomFactorProperty = DependencyProperty.Register(nameof(MinZoomFactor), typeof(double), typeof(ScrollView), new PropertyMetadata(0.1d, OnMinZoomFactorPropertyChanged));
 
     /// <summary>
+    /// Identifies the <see cref="ZoomChainMode"/> dependency property.
+    /// </summary>
+    public static readonly DependencyProperty ZoomChainModeProperty;
+
+    /// <summary>
     /// Identifies the <see cref="ZoomMode"/> dependency property.
     /// </summary>
-    public static readonly DependencyProperty ZoomModeProperty;
+    public static readonly DependencyProperty ZoomModeProperty = DependencyProperty.Register(nameof(ZoomMode), typeof(ScrollingZoomMode), typeof(ScrollView), new PropertyMetadata(ScrollingZoomMode.Disabled, OnZoomModePropertyChanged));
 
     private const string s_horizontalScrollBarPartName = "PART_HorizontalScrollBar";
 
@@ -335,6 +340,21 @@ public class ScrollView : Control
     public float ZoomFactor => _scrollPresenter?.ZoomFactor ?? 0;
 
     /// <summary>
+    /// Gets or sets a value that indicates the ability to zoom in and out by means of user input.
+    /// </summary>
+    public ScrollingZoomMode ZoomMode
+    {
+        get
+        {
+            throw new NotImplementedException();
+        }
+        set
+        {
+            throw new NotImplementedException();
+        }
+    }
+
+    /// <summary>
     /// Asynchronously adds velocity to a scroll action.
     /// </summary>
     /// <param name="offsetsVelocity">The rate of the scroll offset change.</param>
@@ -479,6 +499,11 @@ public class ScrollView : Control
     }
 
     private static void OnMinZoomFactorPropertyChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+    {
+        throw new NotImplementedException();
+    }
+
+    private static void OnZoomModePropertyChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
     {
         throw new NotImplementedException();
     }
