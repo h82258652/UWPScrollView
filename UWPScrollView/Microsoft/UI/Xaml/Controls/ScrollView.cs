@@ -48,7 +48,7 @@ public class ScrollView : Control
     /// <summary>
     /// Identifies the <see cref="ZoomChainMode"/> dependency property.
     /// </summary>
-    public static readonly DependencyProperty ZoomChainModeProperty;
+    public static readonly DependencyProperty ZoomChainModeProperty = DependencyProperty.Register(nameof(ZoomChainMode), typeof(ScrollingChainMode), typeof(ScrollView), new PropertyMetadata(ScrollingChainMode.Auto, OnZoomChainModePropertyChanged));
 
     /// <summary>
     /// Identifies the <see cref="ZoomMode"/> dependency property.
@@ -499,6 +499,11 @@ public class ScrollView : Control
     }
 
     private static void OnMinZoomFactorPropertyChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+    {
+        throw new NotImplementedException();
+    }
+
+    private static void OnZoomChainModePropertyChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
     {
         throw new NotImplementedException();
     }
