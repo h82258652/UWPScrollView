@@ -33,9 +33,68 @@ public class ScrollView : Control
     private UIElement m_verticalScrollControllerElement;
 
     /// <summary>
+    /// Gets a value that indicates the effective visibility of the horizontal scrollbar.
+    /// </summary>
+    public Visibility ComputedHorizontalScrollBarVisibility
+    {
+        get
+        {
+            throw new NotImplementedException();
+        }
+    }
+
+    /// <summary>
+    /// Gets a value that indicates the effective ability to scroll horizontally by means of user input.
+    /// </summary>
+    public ScrollingScrollMode ComputedHorizontalScrollMode
+    {
+        get
+        {
+            throw new NotImplementedException();
+        }
+    }
+
+    /// <summary>
+    /// Gets a value that indicates the effective visibility of the vertical scrollbar.
+    /// </summary>
+    public Visibility ComputedVerticalScrollBarVisibility
+    {
+        get
+        {
+            throw new NotImplementedException();
+        }
+    }
+
+    /// <summary>
+    /// Gets a value that indicates the effective ability to scroll vertically by means of user input.
+    /// </summary>
+    public ScrollingScrollMode ComputedVerticalScrollMode
+    {
+        get
+        {
+            throw new NotImplementedException();
+        }
+    }
+
+    /// <summary>
     /// Gets or sets the content that can be scrolled, panned, or zoomed.
     /// </summary>
     public UIElement Content
+    {
+        get
+        {
+            throw new NotImplementedException();
+        }
+        set
+        {
+            throw new NotImplementedException();
+        }
+    }
+
+    /// <summary>
+    /// Gets or sets a value that indicates whether the content prefers to scroll horizontally or vertically.
+    /// </summary>
+    public ScrollingContentOrientation ContentOrientation
     {
         get
         {
@@ -296,17 +355,24 @@ public class ScrollView : Control
 
     private bool CanScrollInDirection(FocusNavigationDirection direction)
     {
-        throw new NotImplementedException();
+        return direction switch
+        {
+            FocusNavigationDirection.Down => CanScrollDown(),
+            FocusNavigationDirection.Up => CanScrollUp(),
+            FocusNavigationDirection.Left => CanScrollLeft(),
+            FocusNavigationDirection.Right => CanScrollRight(),
+            _ => false
+        };
     }
 
     private bool CanScrollLeft()
     {
-        throw new NotImplementedException();
+        return CanScrollHorizontallyInDirection(inPositiveDirection: false);
     }
 
     private bool CanScrollRight()
     {
-        throw new NotImplementedException();
+        return CanScrollHorizontallyInDirection(inPositiveDirection: true);
     }
 
     private bool CanScrollUp()
