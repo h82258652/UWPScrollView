@@ -334,6 +334,11 @@ public class ScrollView : Control
         throw new NotImplementedException();
     }
 
+    private void HideIndicatorsAfterDelay()
+    {
+        throw new NotImplementedException();
+    }
+
     private void HookCompositionTargetRendering()
     {
         throw new NotImplementedException();
