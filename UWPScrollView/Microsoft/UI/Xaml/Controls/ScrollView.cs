@@ -286,7 +286,7 @@ public class ScrollView : Control
 
     private bool CanScrollDown()
     {
-        throw new NotImplementedException();
+        return CanScrollVerticallyInDirection(inPositiveDirection: true);
     }
 
     private bool CanScrollHorizontallyInDirection(bool inPositiveDirection)
@@ -311,7 +311,7 @@ public class ScrollView : Control
 
     private bool CanScrollUp()
     {
-        throw new NotImplementedException();
+        return CanScrollVerticallyInDirection(inPositiveDirection: false);
     }
 
     private bool CanScrollVerticallyInDirection(bool inPositiveDirection)
