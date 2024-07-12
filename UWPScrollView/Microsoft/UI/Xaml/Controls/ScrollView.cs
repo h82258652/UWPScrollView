@@ -1,6 +1,7 @@
 ﻿using Microsoft.UI.Xaml.Controls.Primitives;
 using System;
 using System.Numerics;
+using System.Reflection;
 using Windows.Devices.Input;
 using Windows.System;
 using Windows.UI.Composition;
@@ -52,6 +53,8 @@ public class ScrollView : Control
     /// Identifies the <see cref="MinZoomFactor"/> dependency property.
     /// </summary>
     public static readonly DependencyProperty MinZoomFactorProperty = DependencyProperty.Register(nameof(MinZoomFactor), typeof(double), typeof(ScrollView), new PropertyMetadata(0.1d, OnMinZoomFactorPropertyChanged));
+
+    public static readonly DependencyProperty VerticalScrollModeProperty;
 
     /// <summary>
     /// Identifies the <see cref="ZoomChainMode"/> dependency property.
@@ -299,8 +302,6 @@ public class ScrollView : Control
     /// </summary>
     public ScrollingInteractionState State => _scrollPresenter?.State ?? ScrollingInteractionState.Idle;
 
-    public static readonly DependencyProperty VerticalScrollModeProperty;
-
     /// <summary>
     /// Gets or sets a value that determines how manipulation input influences scrolling behavior on the horizontal axis.
     /// </summary>
@@ -441,6 +442,29 @@ public class ScrollView : Control
         return _scrollPresenter?.ZoomBy(zoomFactorDelta, centerPoint, options) ?? s_noOpCorrelationId;
     }
 
+    /// <summary>
+    /// Asynchronously zooms to the specified zoom factor with animations enabled and snap points respected.
+    /// </summary>
+    /// <param name="zoomFactor">The amount to scale the content.</param>
+    /// <param name="centerPoint">The center point of the zoom factor change.</param>
+    /// <returns>A correlation ID number used to associate this method call with corresponding events.</returns>
+    public int ZoomTo(float zoomFactor, Vector2? centerPoint)
+    {
+        throw new NotImplementedException();
+    }
+
+    /// <summary>
+    /// Asynchronously zooms to the specified zoom factor with the specified animation and snap point modes.
+    /// </summary>
+    /// <param name="zoomFactor">The amount to scale the content.</param>
+    /// <param name="centerPoint">The center point of the zoom factor change.</param>
+    /// <param name="options">Options that specify whether or not animations are enabled and snap points are respected.</param>
+    /// <returns>A correlation ID number used to associate this method call with corresponding events.</returns>
+    public int ZoomTo(float zoomFactor, Vector2? centerPoint, ScrollingZoomOptions? options)
+    {
+        throw new NotImplementedException();
+    }
+
     /// <inheritdoc/>
     protected override void OnApplyTemplate()
     {
@@ -467,9 +491,10 @@ public class ScrollView : Control
             onlyForAutoHidingScrollControllers: true);
     }
 
-    private static void OnComputedVerticalScrollBarVisibilityPropertyChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+    private static void OnComputedVerticalScrollBarVisibilityPropertyChanged(DependencyObject sender, DependencyPropertyChangedEventArgs args)
     {
-        throw new NotImplementedException();
+        ScrollView owner = (ScrollView)sender;
+        owner.OnPropertyChanged(args);
     }
 
     private static void OnContentPropertyChanged(DependencyObject sender, DependencyPropertyChangedEventArgs args)
@@ -478,14 +503,15 @@ public class ScrollView : Control
         owner.OnPropertyChanged(args);
     }
 
-    private static void OnHorizontalAnchorRatioPropertyChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+    private static void OnHorizontalAnchorRatioPropertyChanged(DependencyObject sender, DependencyPropertyChangedEventArgs args)
     {
         throw new NotImplementedException();
     }
 
-    private static void OnIgnoredInputKindsPropertyChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+    private static void OnIgnoredInputKindsPropertyChanged(DependencyObject sender, DependencyPropertyChangedEventArgs args)
     {
-        throw new NotImplementedException();
+        ScrollView owner = (ScrollView)sender;
+        owner.OnPropertyChanged(args);
     }
 
     private static void OnMaxZoomFactorPropertyChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
