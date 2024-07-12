@@ -16,58 +16,122 @@ namespace Microsoft.UI.Xaml.Controls;
 /// </summary>
 public class ScrollView : Control
 {
-    public static readonly DependencyProperty ComputedHorizontalScrollBarVisibilityProperty = DependencyProperty.Register(nameof(ComputedHorizontalScrollBarVisibility), typeof(Visibility), typeof(ScrollView), new PropertyMetadata(Visibility.Collapsed, OnComputedHorizontalScrollBarVisibilityPropertyChanged));
+    /// <summary>
+    /// Identifies the <see cref="ComputedHorizontalScrollBarVisibility"/> dependency property.
+    /// </summary>
+    public static readonly DependencyProperty ComputedHorizontalScrollBarVisibilityProperty = DependencyProperty.Register(
+        nameof(ComputedHorizontalScrollBarVisibility),
+        typeof(Visibility),
+        typeof(ScrollView),
+        new PropertyMetadata(Visibility.Collapsed, OnComputedHorizontalScrollBarVisibilityPropertyChanged));
 
-    public static readonly DependencyProperty ComputedHorizontalScrollModeProperty;
+    /// <summary>
+    /// Identifies the <see cref="ComputedHorizontalScrollMode"/> dependency property.
+    /// </summary>
+    public static readonly DependencyProperty ComputedHorizontalScrollModeProperty = DependencyProperty.Register(
+        nameof(ComputedHorizontalScrollMode),
+        typeof(ScrollingScrollMode),
+        typeof(ScrollView),
+        new PropertyMetadata(ScrollingScrollMode.Disabled, OnComputedHorizontalScrollModePropertyChanged));
 
     /// <summary>
     /// Identifies the <see cref="ComputedVerticalScrollBarVisibility"/> dependency property.
     /// </summary>
-    public static readonly DependencyProperty ComputedVerticalScrollBarVisibilityProperty = DependencyProperty.Register(nameof(ComputedVerticalScrollBarVisibility), typeof(Visibility), typeof(ScrollView), new PropertyMetadata(Visibility.Collapsed, OnComputedVerticalScrollBarVisibilityPropertyChanged));
+    public static readonly DependencyProperty ComputedVerticalScrollBarVisibilityProperty = DependencyProperty.Register(
+        nameof(ComputedVerticalScrollBarVisibility),
+        typeof(Visibility),
+        typeof(ScrollView),
+        new PropertyMetadata(Visibility.Collapsed, OnComputedVerticalScrollBarVisibilityPropertyChanged));
 
-    public static readonly DependencyProperty ComputedVerticalScrollModeProperty;
+    /// <summary>
+    /// Identifies the <see cref="ComputedVerticalScrollMode"/> dependency property.
+    /// </summary>
+    public static readonly DependencyProperty ComputedVerticalScrollModeProperty = DependencyProperty.Register(
+        nameof(ComputedVerticalScrollMode),
+        typeof(ScrollingScrollMode),
+        typeof(ScrollView),
+        new PropertyMetadata(ScrollingScrollMode.Disabled, OnComputedVerticalScrollModePropertyChanged));
 
-    public static readonly DependencyProperty ContentOrientationProperty;
+    /// <summary>
+    /// Identifies the <see cref="ContentOrientation"/> dependency property.
+    /// </summary>
+    public static readonly DependencyProperty ContentOrientationProperty = DependencyProperty.Register(
+        nameof(ContentOrientation),
+        typeof(ScrollingContentOrientation),
+        typeof(ScrollView),
+        new PropertyMetadata(ScrollingContentOrientation.Vertical, OnContentOrientationPropertyChanged));
 
     /// <summary>
     /// Identifies the <see cref="Content"/> dependency property.
     /// </summary>
-    public static readonly DependencyProperty ContentProperty = DependencyProperty.Register(nameof(Content), typeof(UIElement), typeof(ScrollView), new PropertyMetadata(null, OnContentPropertyChanged));
+    public static readonly DependencyProperty ContentProperty = DependencyProperty.Register(
+        nameof(Content),
+        typeof(UIElement),
+        typeof(ScrollView),
+        new PropertyMetadata(null, OnContentPropertyChanged));
 
     /// <summary>
     /// Identifies the <see cref="HorizontalAnchorRatio"/> dependency property.
     /// </summary>
-    public static readonly DependencyProperty HorizontalAnchorRatioProperty = DependencyProperty.Register(nameof(HorizontalAnchorRatio), typeof(double), typeof(ScrollView), new PropertyMetadata(0d, OnHorizontalAnchorRatioPropertyChanged));
+    public static readonly DependencyProperty HorizontalAnchorRatioProperty = DependencyProperty.Register(
+        nameof(HorizontalAnchorRatio),
+        typeof(double),
+        typeof(ScrollView),
+        new PropertyMetadata(0d, OnHorizontalAnchorRatioPropertyChanged));
 
     /// <summary>
     /// Identifies the <see cref="IgnoredInputKinds"/> dependency property.
     /// </summary>
-    public static readonly DependencyProperty IgnoredInputKindsProperty = DependencyProperty.Register(nameof(IgnoredInputKinds), typeof(ScrollingInputKinds), typeof(ScrollView), new PropertyMetadata(ScrollingInputKinds.None, OnIgnoredInputKindsPropertyChanged));
+    public static readonly DependencyProperty IgnoredInputKindsProperty = DependencyProperty.Register(
+        nameof(IgnoredInputKinds),
+        typeof(ScrollingInputKinds),
+        typeof(ScrollView),
+        new PropertyMetadata(ScrollingInputKinds.None, OnIgnoredInputKindsPropertyChanged));
 
     /// <summary>
     /// Identifies the <see cref="MaxZoomFactor"/> dependency property.
     /// </summary>
-    public static readonly DependencyProperty MaxZoomFactorProperty = DependencyProperty.Register(nameof(MaxZoomFactor), typeof(double), typeof(ScrollView), new PropertyMetadata(10d, OnMaxZoomFactorPropertyChanged));
+    public static readonly DependencyProperty MaxZoomFactorProperty = DependencyProperty.Register(
+        nameof(MaxZoomFactor),
+        typeof(double),
+        typeof(ScrollView),
+        new PropertyMetadata(10d, OnMaxZoomFactorPropertyChanged));
 
     /// <summary>
     /// Identifies the <see cref="MinZoomFactor"/> dependency property.
     /// </summary>
-    public static readonly DependencyProperty MinZoomFactorProperty = DependencyProperty.Register(nameof(MinZoomFactor), typeof(double), typeof(ScrollView), new PropertyMetadata(0.1d, OnMinZoomFactorPropertyChanged));
+    public static readonly DependencyProperty MinZoomFactorProperty = DependencyProperty.Register(
+        nameof(MinZoomFactor),
+        typeof(double),
+        typeof(ScrollView),
+        new PropertyMetadata(0.1d, OnMinZoomFactorPropertyChanged));
 
     /// <summary>
     /// Identifies the <see cref="VerticalScrollMode"/> dependency property.
     /// </summary>
-    public static readonly DependencyProperty VerticalScrollModeProperty = DependencyProperty.Register(nameof(VerticalScrollMode), typeof(ScrollingScrollMode), typeof(ScrollView), new PropertyMetadata(ScrollingScrollMode.Auto, OnVerticalScrollModePropertyChanged));
+    public static readonly DependencyProperty VerticalScrollModeProperty = DependencyProperty.Register(
+        nameof(VerticalScrollMode),
+        typeof(ScrollingScrollMode),
+        typeof(ScrollView),
+        new PropertyMetadata(ScrollingScrollMode.Auto, OnVerticalScrollModePropertyChanged));
 
     /// <summary>
     /// Identifies the <see cref="ZoomChainMode"/> dependency property.
     /// </summary>
-    public static readonly DependencyProperty ZoomChainModeProperty = DependencyProperty.Register(nameof(ZoomChainMode), typeof(ScrollingChainMode), typeof(ScrollView), new PropertyMetadata(ScrollingChainMode.Auto, OnZoomChainModePropertyChanged));
+    public static readonly DependencyProperty ZoomChainModeProperty = DependencyProperty.Register(
+        nameof(ZoomChainMode),
+        typeof(ScrollingChainMode),
+        typeof(ScrollView),
+        new PropertyMetadata(ScrollingChainMode.Auto, OnZoomChainModePropertyChanged));
 
     /// <summary>
     /// Identifies the <see cref="ZoomMode"/> dependency property.
     /// </summary>
-    public static readonly DependencyProperty ZoomModeProperty = DependencyProperty.Register(nameof(ZoomMode), typeof(ScrollingZoomMode), typeof(ScrollView), new PropertyMetadata(ScrollingZoomMode.Disabled, OnZoomModePropertyChanged));
+    public static readonly DependencyProperty ZoomModeProperty = DependencyProperty.Register(
+        nameof(ZoomMode),
+        typeof(ScrollingZoomMode),
+        typeof(ScrollView),
+        new PropertyMetadata(ScrollingZoomMode.Disabled, OnZoomModePropertyChanged));
 
     private const string s_horizontalScrollBarPartName = "PART_HorizontalScrollBar";
 
@@ -232,8 +296,14 @@ public class ScrollView : Control
         }
         set
         {
-            throw new NotImplementedException();
+            ValidateAnchorRatio(value);
+            SetValue(HorizontalAnchorRatioProperty, value);
         }
+    }
+
+    private static void ValidateAnchorRatio(double value)
+    {
+        ScrollPresenter.ValidateAnchorRatio(value);
     }
 
     /// <summary>
@@ -519,10 +589,25 @@ public class ScrollView : Control
         throw new NotImplementedException();
     }
 
+    private static void OnComputedHorizontalScrollModePropertyChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+    {
+        throw new NotImplementedException();
+    }
+
     private static void OnComputedVerticalScrollBarVisibilityPropertyChanged(DependencyObject sender, DependencyPropertyChangedEventArgs args)
     {
         ScrollView owner = (ScrollView)sender;
         owner.OnPropertyChanged(args);
+    }
+
+    private static void OnComputedVerticalScrollModePropertyChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+    {
+        throw new NotImplementedException();
+    }
+
+    private static void OnContentOrientationPropertyChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+    {
+        throw new NotImplementedException();
     }
 
     private static void OnContentPropertyChanged(DependencyObject sender, DependencyPropertyChangedEventArgs args)

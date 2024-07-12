@@ -532,6 +532,14 @@ public class ScrollPresenter : FrameworkElement, IScrollAnchorProvider
         throw new NotImplementedException();
     }
 
+    internal static void ValidateAnchorRatio(double value)
+    {
+        if (!IsAnchorRatioValid(value))
+        {
+            throw new ArgumentException();
+        }
+    }
+
     /// <inheritdoc/>
     protected override Size ArrangeOverride(Size finalSize)
     {
@@ -542,6 +550,11 @@ public class ScrollPresenter : FrameworkElement, IScrollAnchorProvider
     protected override Size MeasureOverride(Size availableSize)
     {
         throw new NotImplementedException();
+    }
+
+    private static bool IsAnchorRatioValid(double value)
+    {
+        return double.IsNaN(value) || (!double.IsInfinity(value) && value >= 0 && value <= 1);
     }
 
     private void EnsureExpressionAnimationSources()
