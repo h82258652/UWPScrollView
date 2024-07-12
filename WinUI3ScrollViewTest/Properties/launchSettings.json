@@ -1,0 +1,10 @@
+{
+  "profiles": {
+    "WinUI3ScrollViewTest (Package)": {
+      "commandName": "MsixPackage"
+    },
+    "WinUI3ScrollViewTest (Unpackaged)": {
+      "commandName": "Project"
+    }
+  }
+}
