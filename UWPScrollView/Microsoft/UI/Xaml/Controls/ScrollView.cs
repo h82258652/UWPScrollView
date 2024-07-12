@@ -21,9 +21,11 @@ public class ScrollView : Control
     private const string s_scrollPresenterPartName = "PART_ScrollPresenter";
     private const string s_verticalScrollBarPartName = "PART_VerticalScrollBar";
     private ScrollPresenter? _scrollPresenter;
+    private FocusInputDeviceKind m_focusInputDeviceKind = FocusInputDeviceKind.None;
     private DispatcherTimer m_hideIndicatorsTimer;
     private IScrollController m_horizontalScrollController;
     private UIElement m_horizontalScrollControllerElement;
+    private bool m_preferMouseIndicators = false;
     private UIElement m_scrollControllersSeparatorElement;
     private IScrollController m_verticalScrollController;
     private UIElement m_verticalScrollControllerElement;
@@ -244,6 +246,32 @@ public class ScrollView : Control
         throw new NotImplementedException();
     }
 
+    /// <inheritdoc/>
+    protected override void OnApplyTemplate()
+    {
+        base.OnApplyTemplate();
+
+        throw new NotImplementedException();
+    }
+
+    /// <inheritdoc/>
+    protected override void OnGotFocus(RoutedEventArgs e)
+    {
+        base.OnGotFocus(e);
+
+        m_preferMouseIndicators =
+            m_focusInputDeviceKind == FocusInputDeviceKind.Mouse ||
+            m_focusInputDeviceKind == FocusInputDeviceKind.Pen;
+
+        UpdateVisualStates(
+            useTransitions: true,
+            showIndicators: true,
+            hideIndicators: false,
+            scrollControllersAutoHidingChanged: false,
+            updateScrollControllersAutoHiding: true,
+            onlyForAutoHidingScrollControllers: true);
+    }
+
     private bool AreAllScrollControllersCollapsed()
     {
         throw new NotImplementedException();
@@ -341,12 +369,17 @@ public class ScrollView : Control
 
     private void OnScrollViewGettingFocus(object sender, GettingFocusEventArgs args)
     {
-        throw new NotImplementedException();
+        m_focusInputDeviceKind = args.InputDevice;
     }
 
     private void OnScrollViewIsEnabledChanged(object sender, DependencyPropertyChangedEventArgs args)
     {
-        throw new NotImplementedException();
+        UpdateVisualStates(
+            useTransitions: true,
+            showIndicators: false,
+            hideIndicators: false,
+            scrollControllersAutoHidingChanged: false,
+            updateScrollControllersAutoHiding: true);
     }
 
     private void OnScrollViewPointerMoved(object sender, PointerRoutedEventArgs args)
