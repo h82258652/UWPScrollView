@@ -15,6 +15,32 @@ public class ScrollView : Control
     private ScrollPresenter _scrollPresenter;
 
     /// <summary>
+    /// Gets or sets the content that can be scrolled, panned, or zoomed.
+    /// </summary>
+    public UIElement Content
+    {
+        get
+        {
+            throw new NotImplementedException();
+        }
+        set
+        {
+            throw new NotImplementedException();
+        }
+    }
+
+    /// <summary>
+    /// Gets the most recently chosen <see cref="UIElement"/> for scroll anchoring after a layout pass, if any.
+    /// </summary>
+    public UIElement? CurrentAnchor
+    {
+        get
+        {
+            throw new NotImplementedException();
+        }
+    }
+
+    /// <summary>
     /// Gets or sets a value that determines how manipulation input influences scrolling behavior on the horizontal axis.
     /// </summary>
     public ScrollingScrollMode HorizontalScrollMode
