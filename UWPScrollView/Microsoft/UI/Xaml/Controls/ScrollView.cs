@@ -16,6 +16,11 @@ namespace Microsoft.UI.Xaml.Controls;
 public class ScrollView : Control
 {
     /// <summary>
+    /// Identifies the <see cref="ComputedVerticalScrollBarVisibility"/> dependency property.
+    /// </summary>
+    public static readonly DependencyProperty ComputedVerticalScrollBarVisibilityProperty = DependencyProperty.Register(nameof(ComputedVerticalScrollBarVisibility), typeof(Visibility), typeof(ScrollView), new PropertyMetadata(Visibility.Collapsed, OnComputedVerticalScrollBarVisibilityPropertyChanged));
+
+    /// <summary>
     /// Identifies the <see cref="Content"/> dependency property.
     /// </summary>
     public static readonly DependencyProperty ContentProperty = DependencyProperty.Register(nameof(Content), typeof(UIElement), typeof(ScrollView), new PropertyMetadata(null, OnContentPropertyChanged));
@@ -24,6 +29,26 @@ public class ScrollView : Control
     /// Identifies the <see cref="HorizontalAnchorRatio"/> dependency property.
     /// </summary>
     public static readonly DependencyProperty HorizontalAnchorRatioProperty = DependencyProperty.Register(nameof(HorizontalAnchorRatio), typeof(double), typeof(ScrollView), new PropertyMetadata(0d, OnHorizontalAnchorRatioPropertyChanged));
+
+    /// <summary>
+    /// Identifies the <see cref="IgnoredInputKinds"/> dependency property.
+    /// </summary>
+    public static readonly DependencyProperty IgnoredInputKindsProperty = DependencyProperty.Register(nameof(IgnoredInputKinds), typeof(ScrollingInputKinds), typeof(ScrollView), new PropertyMetadata(ScrollingInputKinds.None, OnIgnoredInputKindsPropertyChanged));
+
+    /// <summary>
+    /// Identifies the <see cref="MaxZoomFactor"/> dependency property.
+    /// </summary>
+    public static readonly DependencyProperty MaxZoomFactorProperty = DependencyProperty.Register(nameof(MaxZoomFactor), typeof(double), typeof(ScrollView), new PropertyMetadata(10d, OnMaxZoomFactorPropertyChanged));
+
+    /// <summary>
+    /// Identifies the <see cref="MinZoomFactor"/> dependency property.
+    /// </summary>
+    public static readonly DependencyProperty MinZoomFactorProperty = DependencyProperty.Register(nameof(MinZoomFactor), typeof(double), typeof(ScrollView), new PropertyMetadata(0.1d, OnMinZoomFactorPropertyChanged));
+
+    /// <summary>
+    /// Identifies the <see cref="ZoomMode"/> dependency property.
+    /// </summary>
+    public static readonly DependencyProperty ZoomModeProperty;
 
     private const string s_horizontalScrollBarPartName = "PART_HorizontalScrollBar";
 
@@ -98,7 +123,7 @@ public class ScrollView : Control
     {
         get
         {
-            throw new NotImplementedException();
+            return (Visibility)GetValue(ComputedVerticalScrollBarVisibilityProperty);
         }
     }
 
@@ -203,6 +228,21 @@ public class ScrollView : Control
     }
 
     /// <summary>
+    /// Gets or sets the kinds of user input the control does not respond to.
+    /// </summary>
+    public ScrollingInputKinds IgnoredInputKinds
+    {
+        get
+        {
+            throw new NotImplementedException();
+        }
+        set
+        {
+            throw new NotImplementedException();
+        }
+    }
+
+    /// <summary>
     /// Gets or sets the maximum value for the read-only <see cref="ZoomFactor"/> property.
     /// </summary>
     public double MaxZoomFactor
@@ -222,10 +262,7 @@ public class ScrollView : Control
     /// </summary>
     public double MinZoomFactor
     {
-        get
-        {
-            throw new NotImplementedException();
-        }
+        get => (double)GetValue(MinZoomFactorProperty);
         set
         {
             throw new NotImplementedException();
@@ -415,6 +452,11 @@ public class ScrollView : Control
             onlyForAutoHidingScrollControllers: true);
     }
 
+    private static void OnComputedVerticalScrollBarVisibilityPropertyChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+    {
+        throw new NotImplementedException();
+    }
+
     private static void OnContentPropertyChanged(DependencyObject sender, DependencyPropertyChangedEventArgs args)
     {
         ScrollView owner = (ScrollView)sender;
@@ -422,6 +464,21 @@ public class ScrollView : Control
     }
 
     private static void OnHorizontalAnchorRatioPropertyChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+    {
+        throw new NotImplementedException();
+    }
+
+    private static void OnIgnoredInputKindsPropertyChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+    {
+        throw new NotImplementedException();
+    }
+
+    private static void OnMaxZoomFactorPropertyChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+    {
+        throw new NotImplementedException();
+    }
+
+    private static void OnMinZoomFactorPropertyChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
     {
         throw new NotImplementedException();
     }
