@@ -15,25 +15,59 @@ namespace Microsoft.UI.Xaml.Controls;
 /// </summary>
 public class ScrollView : Control
 {
+    /// <summary>
+    /// Identifies the <see cref="Content"/> dependency property.
+    /// </summary>
     public static readonly DependencyProperty ContentProperty = DependencyProperty.Register(nameof(Content), typeof(UIElement), typeof(ScrollView), new PropertyMetadata(null, OnContentPropertyChanged));
+
+    /// <summary>
+    /// Identifies the <see cref="HorizontalAnchorRatio"/> dependency property.
+    /// </summary>
+    public static readonly DependencyProperty HorizontalAnchorRatioProperty = DependencyProperty.Register(nameof(HorizontalAnchorRatio), typeof(double), typeof(ScrollView), new PropertyMetadata(0d, OnHorizontalAnchorRatioPropertyChanged));
+
     private const string s_horizontalScrollBarPartName = "PART_HorizontalScrollBar";
+
     private const string s_IScrollAnchorProviderNotImpl = "Template part named PART_ScrollPresenter does not implement IScrollAnchorProvider.";
+
     private const int s_noOpCorrelationId = -1;
+
     private const string s_noScrollPresenterPart = "No template part named PART_ScrollPresenter was loaded.";
+
     private const string s_rootPartName = "PART_Root";
+
     private const string s_scrollBarsSeparatorPartName = "PART_ScrollBarsSeparator";
+
     private const string s_scrollPresenterPartName = "PART_ScrollPresenter";
+
     private const string s_verticalScrollBarPartName = "PART_VerticalScrollBar";
+
     private ScrollPresenter? _scrollPresenter;
+
     private FocusInputDeviceKind m_focusInputDeviceKind = FocusInputDeviceKind.None;
+
     private DispatcherTimer m_hideIndicatorsTimer;
+
     private IScrollController m_horizontalScrollController;
+
     private UIElement m_horizontalScrollControllerElement;
+
     private bool m_isLeftMouseButtonPressedForFocus = false;
+
     private bool m_preferMouseIndicators = false;
+
     private UIElement m_scrollControllersSeparatorElement;
+
     private IScrollController m_verticalScrollController;
+
     private UIElement m_verticalScrollControllerElement;
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="ScrollView"/> class.
+    /// </summary>
+    public ScrollView()
+    {
+        throw new NotImplementedException();
+    }
 
     /// <summary>
     /// Gets a value that indicates the effective visibility of the horizontal scrollbar.
@@ -122,6 +156,21 @@ public class ScrollView : Control
     /// Gets the horizontal size of all the scrollable content in the ScrollView.
     /// </summary>
     public double ExtentWidth => _scrollPresenter?.ExtentWidth ?? 0;
+
+    /// <summary>
+    /// Gets or sets the ratio within the viewport where the anchor element is selected.
+    /// </summary>
+    public double HorizontalAnchorRatio
+    {
+        get
+        {
+            throw new NotImplementedException();
+        }
+        set
+        {
+            throw new NotImplementedException();
+        }
+    }
 
     /// <summary>
     /// Gets or sets a value that determines how manipulation input influences scrolling behavior on the horizontal axis.
@@ -370,6 +419,11 @@ public class ScrollView : Control
     {
         ScrollView owner = (ScrollView)sender;
         owner.OnPropertyChanged(args);
+    }
+
+    private static void OnHorizontalAnchorRatioPropertyChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+    {
+        throw new NotImplementedException();
     }
 
     private bool AreAllScrollControllersCollapsed()
