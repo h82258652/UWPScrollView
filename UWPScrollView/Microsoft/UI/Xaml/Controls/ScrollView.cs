@@ -25,6 +25,47 @@ public class ScrollView : Control
     }
 
     /// <summary>
+    /// Gets or sets a value that indicates whether the scroll rail is enabled for the horizontal axis.
+    /// </summary>
+    public ScrollingRailMode HorizontalScrollRailMode
+    {
+        get
+        {
+            throw new NotImplementedException();
+        }
+        set
+        {
+            throw new NotImplementedException();
+        }
+    }
+
+    /// <summary>
+    /// Gets or sets the maximum value for the read-only <see cref="ZoomFactor"/> property.
+    /// </summary>
+    public double MaxZoomFactor
+    {
+        get
+        {
+            throw new NotImplementedException();
+        }
+        set
+        {
+            throw new NotImplementedException();
+        }
+    }
+
+    /// <summary>
+    /// Gets a value that indicates the amount of scaling currently applied to content.
+    /// </summary>
+    public float ZoomFactor
+    {
+        get
+        {
+            throw new NotImplementedException();
+        }
+    }
+
+    /// <summary>
     /// Asynchronously zooms by the specified delta amount with animations enabled and snap point respected.
     /// </summary>
     /// <param name="zoomFactorDelta">The amount by which to change the zoom factor.</param>
