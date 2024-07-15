@@ -341,9 +341,9 @@ public class ScrollView : Control
 
     private ScrollBarController? m_verticalScrollBarController;
 
-    private IScrollController m_verticalScrollController;
+    private IScrollController? m_verticalScrollController;
 
-    private UIElement m_verticalScrollControllerElement;
+    private UIElement? m_verticalScrollControllerElement;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="ScrollView"/> class.
@@ -360,47 +360,47 @@ public class ScrollView : Control
     /// <summary>
     /// Occurs when the <see cref="ScrollView"/> is about to select an anchor element.
     /// </summary>
-    public event TypedEventHandler<ScrollView, ScrollingAnchorRequestedEventArgs> AnchorRequested;
+    public event TypedEventHandler<ScrollView, ScrollingAnchorRequestedEventArgs>? AnchorRequested;
 
     /// <summary>
     /// Occurs at the beginning of a bring-into-view request participation. Allows customization of that participation.
     /// </summary>
-    public event TypedEventHandler<ScrollView, ScrollingBringingIntoViewEventArgs> BringingIntoView;
+    public event TypedEventHandler<ScrollView, ScrollingBringingIntoViewEventArgs>? BringingIntoView;
 
     /// <summary>
     /// Occurs when either the <see cref="ExtentWidth"/> or <see cref="ExtentHeight"/> properties has changed.
     /// </summary>
-    public event TypedEventHandler<ScrollView, object> ExtentChanged;
+    public event TypedEventHandler<ScrollView, object>? ExtentChanged;
 
     /// <summary>
     /// Occurs when a call to <see cref="ScrollTo"/> or <see cref="ScrollBy"/> triggers an animation.
     /// </summary>
-    public event TypedEventHandler<ScrollView, ScrollingScrollAnimationStartingEventArgs> ScrollAnimationStarting;
+    public event TypedEventHandler<ScrollView, ScrollingScrollAnimationStartingEventArgs>? ScrollAnimationStarting;
 
     /// <summary>
     /// Occurs when a <see cref="ScrollTo"/>, <see cref="ScrollBy"/>, or <see cref="AddScrollVelocity"/> asynchronous operation ends. Provides the original correlation ID.
     /// </summary>
-    public event TypedEventHandler<ScrollView, ScrollingScrollCompletedEventArgs> ScrollCompleted;
+    public event TypedEventHandler<ScrollView, ScrollingScrollCompletedEventArgs>? ScrollCompleted;
 
     /// <summary>
     /// Occurs when the current interaction state of the control has changed.
     /// </summary>
-    public event TypedEventHandler<ScrollView, object> StateChanged;
+    public event TypedEventHandler<ScrollView, object>? StateChanged;
 
     /// <summary>
     /// Occurs when manipulations such as scrolling and zooming have caused the view to change.
     /// </summary>
-    public event TypedEventHandler<ScrollView, object> ViewChanged;
+    public event TypedEventHandler<ScrollView, object>? ViewChanged;
 
     /// <summary>
     /// Occurs when a call to <see cref="ZoomTo"/> or <see cref="ZoomBy"/> triggers an animation.
     /// </summary>
-    public event TypedEventHandler<ScrollView, ScrollingZoomAnimationStartingEventArgs> ZoomAnimationStarting;
+    public event TypedEventHandler<ScrollView, ScrollingZoomAnimationStartingEventArgs>? ZoomAnimationStarting;
 
     /// <summary>
     /// Occurs when a <see cref="ZoomTo"/>, <see cref="ZoomBy"/>, or <see cref="AddZoomVelocity"/> asynchronous operation ends. Provides the original correlation ID.
     /// </summary>
-    public event TypedEventHandler<ScrollView, ScrollingZoomCompletedEventArgs> ZoomCompleted;
+    public event TypedEventHandler<ScrollView, ScrollingZoomCompletedEventArgs>? ZoomCompleted;
 
     /// <summary>
     /// Gets a value that indicates the effective visibility of the horizontal scrollbar.
