@@ -8,6 +8,18 @@ namespace Microsoft.UI.Xaml.Controls;
 /// </summary>
 public sealed class ScrollingBringingIntoViewEventArgs
 {
+    private bool m_cancel;
+
+    private int m_offsetsChangeCorrelationId = -1;
+
+    private BringIntoViewRequestedEventArgs m_requestEventArgs;
+
+    private ScrollingSnapPointsMode m_snapPointsMode = ScrollingSnapPointsMode.Ignore;
+
+    private double m_targetHorizontalOffset;
+
+    private double m_targetVerticalOffset;
+
     private ScrollingBringingIntoViewEventArgs()
     {
     }
@@ -19,11 +31,11 @@ public sealed class ScrollingBringingIntoViewEventArgs
     {
         get
         {
-            throw new NotImplementedException();
+            return m_cancel;
         }
         set
         {
-            throw new NotImplementedException();
+            m_cancel = value;
         }
     }
 
@@ -34,7 +46,7 @@ public sealed class ScrollingBringingIntoViewEventArgs
     {
         get
         {
-            throw new NotImplementedException();
+            return m_offsetsChangeCorrelationId;
         }
     }
 
@@ -45,7 +57,7 @@ public sealed class ScrollingBringingIntoViewEventArgs
     {
         get
         {
-            throw new NotImplementedException();
+            return m_requestEventArgs;
         }
     }
 
@@ -56,11 +68,11 @@ public sealed class ScrollingBringingIntoViewEventArgs
     {
         get
         {
-            throw new NotImplementedException();
+            return m_snapPointsMode;
         }
         set
         {
-            throw new NotImplementedException();
+            m_snapPointsMode = value;
         }
     }
 
@@ -71,7 +83,7 @@ public sealed class ScrollingBringingIntoViewEventArgs
     {
         get
         {
-            throw new NotImplementedException();
+            return m_targetHorizontalOffset;
         }
     }
 
@@ -82,7 +94,7 @@ public sealed class ScrollingBringingIntoViewEventArgs
     {
         get
         {
-            throw new NotImplementedException();
+            return m_targetVerticalOffset;
         }
     }
 }

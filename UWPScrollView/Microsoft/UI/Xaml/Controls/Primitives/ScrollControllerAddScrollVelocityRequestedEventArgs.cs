@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace Microsoft.UI.Xaml.Controls.Primitives;
+﻿namespace Microsoft.UI.Xaml.Controls.Primitives;
 
 /// <summary>
 /// Provides data for the <see cref="IScrollController.AddScrollVelocityRequested"/> event.
@@ -14,43 +12,22 @@ public sealed class ScrollControllerAddScrollVelocityRequestedEventArgs
     /// <param name="inertiaDecayRate">The inertia decay rate.</param>
     public ScrollControllerAddScrollVelocityRequestedEventArgs(float offsetVelocity, float? inertiaDecayRate)
     {
-        throw new NotImplementedException();
+        OffsetVelocity = offsetVelocity;
+        InertiaDecayRate = inertiaDecayRate;
     }
 
     /// <summary>
     /// Gets or sets the correlation ID associated with the offset change.
     /// </summary>
-    public int CorrelationId
-    {
-        get
-        {
-            throw new NotImplementedException();
-        }
-        set
-        {
-            throw new NotImplementedException();
-        }
-    }
+    public int CorrelationId { get; set; } = -1;
 
     /// <summary>
     /// Gets the inertia decay rate, between 0.0 and 1.0, for the requested scroll operation.
     /// </summary>
-    public float? InertiaDecayRate
-    {
-        get
-        {
-            throw new NotImplementedException();
-        }
-    }
+    public float? InertiaDecayRate { get; }
 
     /// <summary>
     /// Gets the requested velocity of the offset change.
     /// </summary>
-    public float OffsetVelocity
-    {
-        get
-        {
-            throw new NotImplementedException();
-        }
-    }
+    public float OffsetVelocity { get; }
 }

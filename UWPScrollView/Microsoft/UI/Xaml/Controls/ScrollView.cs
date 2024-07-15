@@ -5,9 +5,11 @@ using System.Diagnostics;
 using System.Numerics;
 using Windows.Devices.Input;
 using Windows.Foundation;
+using Windows.Foundation.Metadata;
 using Windows.System;
 using Windows.UI.Composition;
 using Windows.UI.Input;
+using Windows.UI.ViewManagement;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
 using Windows.UI.Xaml.Controls.Primitives;
@@ -254,12 +256,19 @@ public class ScrollView : Control
 
     private ScrollPresenter? _scrollPresenter;
 
+    private AutoHideScrollBarsState m_autoHideScrollBarsState;
+
+    private bool m_autoHideScrollControllers = false;
+
+    private bool m_autoHideScrollControllersValid = false;
+
     /// <summary>
     /// List of temporary ScrollViewBringIntoViewOperation instances used to track expected
     /// ScrollPresenter::BringingIntoView occurrences due to navigation.
     /// </summary>
     private List<ScrollViewBringIntoViewOperation> m_bringIntoViewOperations;
 
+    private DispatcherQueue m_dispatcherQueue = DispatcherQueue.GetForCurrentThread();
     private FocusInputDeviceKind m_focusInputDeviceKind = FocusInputDeviceKind.None;
 
     /// <summary>
@@ -269,6 +278,7 @@ public class ScrollView : Control
 
     private DispatcherTimer m_hideIndicatorsTimer;
 
+    private int m_horizontalAddScrollVelocityDirection;
     private int m_horizontalAddScrollVelocityOffsetChangeCorrelationId = -1;
     private ScrollBarController? m_horizontalScrollBarController;
 
@@ -326,6 +336,7 @@ public class ScrollView : Control
     /// </summary>
     private bool m_showingMouseIndicators = false;
 
+    private int m_verticalAddScrollVelocityDirection;
     private int m_verticalAddScrollVelocityOffsetChangeCorrelationId = -1;
     private ScrollBarController? m_verticalScrollBarController;
 
@@ -338,6 +349,8 @@ public class ScrollView : Control
     /// </summary>
     public ScrollView()
     {
+        m_autoHideScrollBarsState = MakeAutoHideScrollBarsState();
+
         DefaultStyleKey = typeof(ScrollView);
         HookUISettingsEvent();
         HookScrollViewEvents();
@@ -1056,19 +1069,49 @@ public class ScrollView : Control
         owner.OnPropertyChanged(args);
     }
 
-    private static void OnMaxZoomFactorPropertyChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+    private static void OnMaxZoomFactorPropertyChanged(DependencyObject sender, DependencyPropertyChangedEventArgs args)
     {
-        throw new NotImplementedException();
+        var owner = (ScrollView)sender;
+
+        var value = (double)args.NewValue;
+        ValidateZoomFactoryBoundary(value);
+        if (double.IsNaN(value))
+        {
+            sender.SetValue(args.Property, 10d);
+            return;
+        }
+
+        owner.OnPropertyChanged(args);
     }
 
-    private static void OnMinZoomFactorPropertyChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+    private static void OnMinZoomFactorPropertyChanged(DependencyObject sender, DependencyPropertyChangedEventArgs args)
     {
-        throw new NotImplementedException();
+        var owner = (ScrollView)sender;
+
+        var value = (double)args.NewValue;
+        ValidateZoomFactoryBoundary(value);
+        if (double.IsNaN(value))
+        {
+            sender.SetValue(args.Property, 0.1d);
+            return;
+        }
+
+        owner.OnPropertyChanged(args);
     }
 
-    private static void OnVerticalAnchorRatioPropertyChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+    private static void OnVerticalAnchorRatioPropertyChanged(DependencyObject sender, DependencyPropertyChangedEventArgs args)
     {
-        throw new NotImplementedException();
+        var owner = (ScrollView)sender;
+
+        var value = (double)args.NewValue;
+        ValidateAnchorRatio(value);
+        if (double.IsNaN(value))
+        {
+            sender.SetValue(args.Property, 0d);
+            return;
+        }
+
+        owner.OnPropertyChanged(args);
     }
 
     private static void OnVerticalScrollBarVisibilityPropertyChanged(DependencyObject sender, DependencyPropertyChangedEventArgs args)
@@ -1083,19 +1126,22 @@ public class ScrollView : Control
         owner.OnPropertyChanged(args);
     }
 
-    private static void OnVerticalScrollModePropertyChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+    private static void OnVerticalScrollModePropertyChanged(DependencyObject sender, DependencyPropertyChangedEventArgs args)
     {
-        throw new NotImplementedException();
+        ScrollView owner = (ScrollView)sender;
+        owner.OnPropertyChanged(args);
     }
 
-    private static void OnVerticalScrollRailModePropertyChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+    private static void OnVerticalScrollRailModePropertyChanged(DependencyObject sender, DependencyPropertyChangedEventArgs args)
     {
-        throw new NotImplementedException();
+        ScrollView owner = (ScrollView)sender;
+        owner.OnPropertyChanged(args);
     }
 
-    private static void OnZoomChainModePropertyChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+    private static void OnZoomChainModePropertyChanged(DependencyObject sender, DependencyPropertyChangedEventArgs args)
     {
-        throw new NotImplementedException();
+        ScrollView owner = (ScrollView)sender;
+        owner.OnPropertyChanged(args);
     }
 
     private static void OnZoomModePropertyChanged(DependencyObject sender, DependencyPropertyChangedEventArgs args)
@@ -1116,17 +1162,48 @@ public class ScrollView : Control
 
     private bool AreAllScrollControllersCollapsed()
     {
-        throw new NotImplementedException();
+        return !SharedHelpers.IsAncestor(m_horizontalScrollControllerElement as DependencyObject /*child*/, this /*parent*/, true /*checkVisibility*/) &&
+            !SharedHelpers.IsAncestor(m_verticalScrollControllerElement as DependencyObject /*child*/, this /*parent*/, true /*checkVisibility*/);
     }
 
     private bool AreBothScrollControllersVisible()
     {
-        throw new NotImplementedException();
+        return SharedHelpers.IsAncestor(m_horizontalScrollControllerElement as DependencyObject /*child*/, this /*parent*/, true /*checkVisibility*/) &&
+        SharedHelpers.IsAncestor(m_verticalScrollControllerElement as DependencyObject /*child*/, this /*parent*/, true /*checkVisibility*/);
     }
 
     private bool AreScrollControllersAutoHiding()
     {
-        throw new NotImplementedException();
+        // Use the cached value unless it was invalidated.
+        if (m_autoHideScrollControllersValid)
+        {
+            return m_autoHideScrollControllers;
+        }
+
+        m_autoHideScrollControllersValid = true;
+
+        if (ScrollViewTestHooks.GetGlobalTestHooks() is { } globalTestHooks)
+        {
+            var autoHideScrollControllers = ScrollViewTestHooks.GetAutoHideScrollControllers(this);
+
+            if (autoHideScrollControllers is true)
+            {
+                // Test hook takes precedence over UISettings and registry key settings.
+                m_autoHideScrollControllers = autoHideScrollControllers.Value;
+                return m_autoHideScrollControllers;
+            }
+        }
+
+        if (m_autoHideScrollBarsState.m_uiSettings5 is not null)
+        {
+            m_autoHideScrollControllers = m_autoHideScrollBarsState.m_uiSettings5.AutoHideScrollBars;
+        }
+        else
+        {
+            m_autoHideScrollControllers = RegUtil.UseDynamicScrollbars();
+        }
+
+        return m_autoHideScrollControllers;
     }
 
     private bool CanScrollDown()
@@ -1247,14 +1324,199 @@ public class ScrollView : Control
         return canScrollInDirection;
     }
 
-    private void DoScroll(double offsetAmount, Orientation orientation)
+    private void DoScroll(double offset, Orientation orientation)
     {
-        throw new NotImplementedException();
+        bool isVertical = orientation == Orientation.Vertical;
+
+        if (_scrollPresenter is ScrollPresenter scrollPresenter)
+        {
+            if (SharedHelpers.IsAnimationsEnabled())
+            {
+                var inertiaDecayRate = new Vector2(0.9995f, 0.9995f);
+
+                // A velocity less than or equal to this value has no effect.
+                const double minVelocity = 30.0;
+
+                // We need to add this much velocity over minVelocity per pixel we want to move:
+                const double s_velocityNeededPerPixel = 7.600855902349023;
+
+                var scrollDir = offset > 0 ? 1 : -1;
+
+                // The minimum velocity required to move in the given direction.
+                double baselineVelocity = minVelocity * scrollDir;
+
+                // If there is already a scroll animation running for a previous key press, we want to take that into account
+                // for calculating the baseline velocity.
+                var previousScrollViewChangeCorrelationId = isVertical ? m_verticalAddScrollVelocityOffsetChangeCorrelationId : m_horizontalAddScrollVelocityOffsetChangeCorrelationId;
+                if (previousScrollViewChangeCorrelationId != s_noOpCorrelationId)
+                {
+                    var directionOfPreviousScrollOperation = isVertical ? m_verticalAddScrollVelocityDirection : m_horizontalAddScrollVelocityDirection;
+                    if (directionOfPreviousScrollOperation == 1)
+                    {
+                        baselineVelocity -= minVelocity;
+                    }
+                    else if (directionOfPreviousScrollOperation == -1)
+                    {
+                        baselineVelocity += minVelocity;
+                    }
+                }
+
+                var velocity = (float)(baselineVelocity + (offset * s_velocityNeededPerPixel));
+
+                if (isVertical)
+                {
+                    Vector2 offsetsVelocity = new(0.0f, velocity);
+                    m_verticalAddScrollVelocityOffsetChangeCorrelationId = scrollPresenter.AddScrollVelocity(offsetsVelocity, inertiaDecayRate);
+                    m_verticalAddScrollVelocityDirection = scrollDir;
+                }
+                else
+                {
+                    Vector2 offsetsVelocity = new(velocity, 0.0f);
+                    m_horizontalAddScrollVelocityOffsetChangeCorrelationId = scrollPresenter.AddScrollVelocity(offsetsVelocity, inertiaDecayRate);
+                    m_horizontalAddScrollVelocityDirection = scrollDir;
+                }
+            }
+            else
+            {
+                if (isVertical)
+                {
+                    // Any horizontal AddScrollVelocity animation recently launched should be ignored by a potential subsequent AddScrollVelocity call.
+                    m_verticalAddScrollVelocityOffsetChangeCorrelationId = s_noOpCorrelationId;
+
+                    scrollPresenter.ScrollBy(0.0 /*horizontalOffsetDelta*/, offset /*verticalOffsetDelta*/);
+                }
+                else
+                {
+                    // Any vertical AddScrollVelocity animation recently launched should be ignored by a potential subsequent AddScrollVelocity call.
+                    m_horizontalAddScrollVelocityOffsetChangeCorrelationId = s_noOpCorrelationId;
+
+                    scrollPresenter.ScrollBy(offset /*horizontalOffsetDelta*/, 0.0 /*verticalOffsetDelta*/);
+                }
+            }
+        }
     }
 
     private bool DoScrollForKey(VirtualKey key, double scrollProportion)
     {
-        throw new NotImplementedException();
+        Debug.Assert(_scrollPresenter != null);
+
+        const double offsetEpsilon = 0.001;
+        bool isScrollTriggered = false;
+        var scrollPresenter = _scrollPresenter as ScrollPresenter;
+
+        if ((key == VirtualKey.PageDown || key == VirtualKey.Down) && CanScrollDown())
+        {
+            Debug.Assert(scrollPresenter.VerticalOffset < ScrollableHeight);
+
+            // When getting close to the maximum vertical offset:
+            //  - make sure the maximum is actually reached thanks for the epsilon addition.
+            var maxScrollAmount = ScrollableHeight + offsetEpsilon - scrollPresenter.VerticalOffset;
+            //  - do not automatically overbounce by limiting the offset change to the remaining scrollable height.
+            var scrollAmount = Math.Min(maxScrollAmount, scrollPresenter.ActualHeight * (key == VirtualKey.PageDown ? 1.0 : scrollProportion));
+
+            isScrollTriggered = true;
+            DoScroll(scrollAmount, Orientation.Vertical);
+        }
+        else if ((key == VirtualKey.PageUp || key == VirtualKey.Up) && CanScrollUp())
+        {
+            Debug.Assert(scrollPresenter.VerticalOffset > 0);
+
+            // When getting close to the minimum vertical offset 0.0:
+            //  - make sure 0.0 is actually reached thanks for the epsilon addition.
+            var maxScrollAmount = scrollPresenter.VerticalOffset + offsetEpsilon;
+            //  - do not automatically overbounce by limiting the offset change to the remaining offset.
+            var scrollAmount = Math.Max(-maxScrollAmount, scrollPresenter.ActualHeight * (key == VirtualKey.PageUp ? -1.0 : -scrollProportion));
+
+            isScrollTriggered = true;
+            DoScroll(scrollAmount, Orientation.Vertical);
+        }
+        else if (key == VirtualKey.Left || key == VirtualKey.Right)
+        {
+            double scrollAmount = scrollPresenter.ActualWidth * scrollProportion;
+            bool isRTL = FlowDirection == FlowDirection.RightToLeft;
+
+            if (isRTL)
+            {
+                scrollAmount *= -1;
+            }
+
+            if (key == VirtualKey.Right && CanScrollRight())
+            {
+                // When getting close to the maximum horizontal offset:
+                //  - make sure the maximum is actually reached thanks for the epsilon addition.
+                var maxScrollAmount = isRTL ?
+                    -scrollPresenter.HorizontalOffset - offsetEpsilon :
+                    ScrollableWidth + offsetEpsilon - scrollPresenter.HorizontalOffset;
+                //  - do not automatically overbounce by limiting the offset change to the remaining scrollable width.
+                scrollAmount = isRTL ?
+                    Math.Max(maxScrollAmount, scrollAmount) :
+                    Math.Min(maxScrollAmount, scrollAmount);
+
+                Debug.Assert(scrollAmount != 0.0);
+
+                isScrollTriggered = true;
+                DoScroll(scrollAmount, Orientation.Horizontal);
+            }
+            else if (key == VirtualKey.Left && CanScrollLeft())
+            {
+                // When getting close to the minimum horizontal offset 0.0:
+                //  - make sure 0.0 is actually reached thanks for the epsilon addition.
+                var maxScrollAmount = isRTL ?
+                    -ScrollableWidth - offsetEpsilon + scrollPresenter.HorizontalOffset :
+                    scrollPresenter.HorizontalOffset + offsetEpsilon;
+                //  - do not automatically overbounce by limiting the offset change to the remaining offset.
+                scrollAmount =
+                    isRTL ?
+                    Math.Min(-maxScrollAmount, -scrollAmount) :
+                    Math.Max(-maxScrollAmount, -scrollAmount);
+
+                Debug.Assert(scrollAmount != 0.0);
+
+                isScrollTriggered = true;
+                DoScroll(scrollAmount, Orientation.Horizontal);
+            }
+        }
+        else if (key == VirtualKey.Home)
+        {
+            bool canScrollUp = CanScrollUp();
+            var verticalScrollMode = ComputedVerticalScrollMode;
+
+            if (canScrollUp || (verticalScrollMode == ScrollingScrollMode.Disabled && CanScrollLeft()))
+            {
+                isScrollTriggered = true;
+                var horizontalOffset = canScrollUp ? scrollPresenter.HorizontalOffset : 0.0;
+                var verticalOffset = canScrollUp ? 0.0 : scrollPresenter.VerticalOffset;
+
+                if (!canScrollUp && FlowDirection == FlowDirection.RightToLeft)
+                {
+                    horizontalOffset = scrollPresenter.ExtentWidth * scrollPresenter.ZoomFactor - scrollPresenter.ActualWidth;
+                }
+
+                scrollPresenter.ScrollTo(horizontalOffset, verticalOffset);
+            }
+        }
+        else if (key == VirtualKey.End)
+        {
+            bool canScrollDown = CanScrollDown();
+            var verticalScrollMode = ComputedVerticalScrollMode;
+
+            if (canScrollDown || (verticalScrollMode == ScrollingScrollMode.Disabled && CanScrollRight()))
+            {
+                isScrollTriggered = true;
+                var zoomedExtent = (canScrollDown ? scrollPresenter.ExtentHeight : scrollPresenter.ExtentWidth) * scrollPresenter.ZoomFactor;
+                var horizontalOffset = canScrollDown ? scrollPresenter.HorizontalOffset : zoomedExtent - scrollPresenter.ActualWidth;
+                var verticalOffset = canScrollDown ? zoomedExtent - scrollPresenter.ActualHeight : scrollPresenter.VerticalOffset;
+
+                if (!canScrollDown && FlowDirection == FlowDirection.RightToLeft)
+                {
+                    horizontalOffset = 0.0;
+                }
+
+                scrollPresenter.ScrollTo(horizontalOffset, verticalOffset);
+            }
+        }
+
+        return isScrollTriggered;
     }
 
     private DependencyObject GetNextFocusCandidate(FocusNavigationDirection navigationDirection, bool isPageNavigation)
@@ -1326,7 +1588,170 @@ public class ScrollView : Control
 
     private void HandleKeyDownForXYNavigation(KeyRoutedEventArgs args)
     {
-        throw new NotImplementedException();
+        Debug.Assert(!args.Handled);
+        Debug.Assert(_scrollPresenter != null);
+
+        bool isHandled = false;
+        var originalKey = args.OriginalKey;
+        var scrollPresenter = _scrollPresenter as ScrollPresenter;
+        bool isPageNavigation = FocusHelper.IsGamepadPageNavigationDirection(originalKey);
+        double scrollAmountProportion = isPageNavigation ? 1.0 : 0.5;
+        bool shouldProcessKeyEvent = true;
+        FocusNavigationDirection navigationDirection;
+
+        if (isPageNavigation)
+        {
+            navigationDirection = FocusHelper.GetPageNavigationDirection(originalKey);
+
+            // We should only handle page navigation if we can scroll in that direction.
+            // Note: For non-paging navigation, we might want to move focus even if we cannot scroll.
+            shouldProcessKeyEvent = CanScrollInDirection(navigationDirection);
+        }
+        else
+        {
+            navigationDirection = FocusHelper.GetNavigationDirection(originalKey);
+        }
+
+        if (shouldProcessKeyEvent)
+        {
+            bool shouldScroll = false;
+            bool shouldMoveFocus = false;
+            DependencyObject nextElement = null;
+
+            if (navigationDirection != FocusNavigationDirection.None)
+            {
+                nextElement = GetNextFocusCandidate(navigationDirection, isPageNavigation);
+            }
+
+            if (nextElement is not null && nextElement != FocusManager.GetFocusedElement(XamlRoot))
+            {
+                UIElement nextElementAsUIE = FocusHelper.GetUIElementForFocusCandidate(nextElement);
+                Debug.Assert(nextElementAsUIE != null);
+
+                var nextElementAsFe = nextElementAsUIE as FrameworkElement;
+                var rect = new Rect(0, 0, (float)(nextElementAsFe.ActualWidth), (float)(nextElementAsFe.ActualHeight));
+                var elementBounds = nextElementAsUIE.TransformToVisual(scrollPresenter).TransformBounds(rect);
+                var viewport = new Rect(0, 0, (float)(scrollPresenter.ActualWidth), (float)(scrollPresenter.ActualHeight));
+
+                // Extend the viewport in the direction we are moving:
+                Rect extendedViewport = viewport;
+                switch (navigationDirection)
+                {
+                    case FocusNavigationDirection.Down:
+                        extendedViewport.Height += viewport.Height;
+                        break;
+
+                    case FocusNavigationDirection.Up:
+                        extendedViewport.Y -= viewport.Height;
+                        extendedViewport.Height += viewport.Height;
+                        break;
+
+                    case FocusNavigationDirection.Left:
+                        extendedViewport.X -= viewport.Width;
+                        extendedViewport.Width += viewport.Width;
+                        break;
+
+                    case FocusNavigationDirection.Right:
+                        extendedViewport.Width += viewport.Width;
+                        break;
+                }
+
+                bool isElementInExtendedViewport = RectHelper.Intersect(elementBounds, extendedViewport) != RectHelper.Empty;
+                bool isElementFullyInExtendedViewport = RectHelper.Union(elementBounds, extendedViewport) == extendedViewport;
+
+                if (isElementInExtendedViewport)
+                {
+                    if (isPageNavigation)
+                    {
+                        // Always scroll for page navigation
+                        shouldScroll = true;
+
+                        if (isElementFullyInExtendedViewport)
+                        {
+                            // Move focus:
+                            shouldMoveFocus = true;
+                        }
+                    }
+                    else
+                    {
+                        // Non-paging scroll allows partial candidates
+                        shouldMoveFocus = true;
+                    }
+                }
+                else
+                {
+                    // Element is outside extended viewport - scroll but don't focus.
+                    shouldScroll = true;
+                }
+            }
+            else
+            {
+                // No focus candidate: scroll
+                shouldScroll = true;
+            }
+
+            if (shouldMoveFocus)
+            {
+                var focusAsyncOperation = FocusManager.TryFocusAsync(nextElement, FocusState.Keyboard);
+
+                if (SharedHelpers.IsAnimationsEnabled()) // When system animations are turned off, the bring-into-view operations are not turned into animations.
+                {
+                    // By changing focus, we will trigger BringIntoView requests in ScrollPresenter. If we are not going to invoke a scroll below (i.e. shouldScroll = false)
+                    // we should allow ScrollPresenter to animate any BringIntoView requests.
+                    // If we ARE going to invoke a scroll below (i.e. shouldScroll = true) we want to prevent the case where both our scroll and the scroll triggered by the
+                    // focus change are active at once. So in this case we want to cancel any BringIntoView operations, since we are already handling the scrolling.
+                    bool cancelBringIntoView = shouldScroll;
+
+                    var strongThis = this;
+                    var targetElement = nextElement as UIElement;
+                    focusAsyncOperation.Completed = new AsyncOperationCompletedHandler<FocusMovementResult>((asyncOperation, asyncStatus) =>
+                    {
+                        if (asyncStatus == AsyncStatus.Completed && asyncOperation.GetResults() is not null)
+                        {
+                            var bringIntoViewOperation = new ScrollViewBringIntoViewOperation(targetElement, cancelBringIntoView);
+
+                            strongThis.m_bringIntoViewOperations.Add(bringIntoViewOperation);
+                            strongThis.HookCompositionTargetRendering();
+                        }
+                    });
+                }
+
+                isHandled = true;
+            }
+
+            if (shouldScroll)
+            {
+                if (navigationDirection == FocusNavigationDirection.None)
+                {
+                    isHandled = DoScrollForKey(args.Key, scrollAmountProportion);
+                }
+                else
+                {
+                    if (navigationDirection == FocusNavigationDirection.Down && CanScrollDown())
+                    {
+                        isHandled = true;
+                        DoScroll(scrollPresenter.ActualHeight * scrollAmountProportion, Orientation.Vertical);
+                    }
+                    else if (navigationDirection == FocusNavigationDirection.Up && CanScrollUp())
+                    {
+                        isHandled = true;
+                        DoScroll(-scrollPresenter.ActualHeight * scrollAmountProportion, Orientation.Vertical);
+                    }
+                    else if (navigationDirection == FocusNavigationDirection.Right && CanScrollRight())
+                    {
+                        isHandled = true;
+                        DoScroll(scrollPresenter.ActualWidth * scrollAmountProportion * (FlowDirection == FlowDirection.RightToLeft ? -1 : 1), Orientation.Horizontal);
+                    }
+                    else if (navigationDirection == FocusNavigationDirection.Left && CanScrollLeft())
+                    {
+                        isHandled = true;
+                        DoScroll(-scrollPresenter.ActualWidth * scrollAmountProportion * (FlowDirection == FlowDirection.RightToLeft ? -1 : 1), Orientation.Horizontal);
+                    }
+                }
+            }
+        }
+
+        args.Handled = (isHandled);
     }
 
     private void HandleScrollControllerPointerEntered(bool isForHorizontalScrollController)
@@ -1496,7 +1921,7 @@ public class ScrollView : Control
 
     private void HookUISettingsEvent()
     {
-        throw new NotImplementedException();
+        m_autoHideScrollBarsState.HookUISettingsEvent(this);
     }
 
     private void HookVerticalScrollControllerEvents()
@@ -1528,12 +1953,54 @@ public class ScrollView : Control
 
     private bool IsScrollControllersSeparatorVisible()
     {
-        throw new NotImplementedException();
+        return m_scrollControllersSeparatorElement is not null && m_scrollControllersSeparatorElement.Visibility == Visibility.Visible;
+    }
+
+    private AutoHideScrollBarsState MakeAutoHideScrollBarsState()
+    {
+        return new AutoHideScrollBarsState();
+    }
+
+    private void OnAutoHideScrollBarsChanged(UISettings uiSettings, UISettingsAutoHideScrollBarsChangedEventArgs args)
+    {
+        // OnAutoHideScrollBarsChanged is called on a non-UI thread, process notification on the UI thread using a dispatcher.
+        m_dispatcherQueue.TryEnqueue(() =>
+        {
+            this.m_autoHideScrollControllersValid = false;
+            this.UpdateVisualStates(
+                true  /*useTransitions*/,
+                false /*showIndicators*/,
+                false /*hideIndicators*/,
+                true  /*scrollControllersAutoHidingChanged*/);
+        });
     }
 
     private void OnCompositionTargetRendering(object sender, object args)
     {
-        throw new NotImplementedException();
+        if (m_bringIntoViewOperations.Count > 0)
+        {
+            foreach (var operationsIter in m_bringIntoViewOperations)
+            {
+                var bringIntoViewOperation = operationsIter;
+
+                if (bringIntoViewOperation.HasMaxTicksCount)
+                {
+                    // This ScrollView is no longer expected to receive BringingIntoView notifications from its ScrollPresenter,
+                    // resulting from a FocusManager::TryFocusAsync call in ScrollView::HandleKeyDownForXYNavigation.
+                    m_bringIntoViewOperations.Remove(bringIntoViewOperation);
+                }
+                else
+                {
+                    // Increment the number of ticks ellapsed since the FocusManager::TryFocusAsync call, and continue to wait for BringingIntoView notifications.
+                    bringIntoViewOperation.TickOperation();
+                }
+            }
+        }
+
+        if (m_bringIntoViewOperations.Count <= 0)
+        {
+            UnhookCompositionTargetRendering();
+        }
     }
 
     private void OnHideIndicatorsTimerTick(object sender, object args)
@@ -1548,14 +2015,12 @@ public class ScrollView : Control
 
     private void OnHorizontalScrollControllerPointerEntered(object sender, PointerRoutedEventArgs args)
     {
-        throw new NotImplementedException();
+        HandleScrollControllerPointerEntered(true /*isForHorizontalScrollController*/);
     }
 
-    private void OnHorizontalScrollControllerPointerExited(
-                                                object sender,
-            PointerRoutedEventArgs args)
+    private void OnHorizontalScrollControllerPointerExited(object sender, PointerRoutedEventArgs args)
     {
-        throw new NotImplementedException();
+        HandleScrollControllerPointerExited(true /*isForHorizontalScrollController*/);
     }
 
     private void OnIndicatorStateStoryboardCompleted(
@@ -1720,7 +2185,14 @@ public class ScrollView : Control
 
     private void OnScrollPresenterPropertyChanged(DependencyObject sender, DependencyProperty args)
     {
-        throw new NotImplementedException();
+        if (args == ScrollPresenter.ComputedHorizontalScrollModeProperty)
+        {
+            SetValue(ComputedHorizontalScrollModeProperty, _scrollPresenter.ComputedHorizontalScrollMode);
+        }
+        else if (args == ScrollPresenter.ComputedVerticalScrollModeProperty)
+        {
+            SetValue(ComputedVerticalScrollModeProperty, _scrollPresenter.ComputedVerticalScrollMode);
+        }
     }
 
     private void OnScrollPresenterScrollCompleted(object sender, ScrollingScrollCompletedEventArgs args)
@@ -1739,7 +2211,15 @@ public class ScrollView : Control
 
     private void OnScrollPresenterStateChanged(object sender, object args)
     {
-        throw new NotImplementedException();
+        if (_scrollPresenter is { } scrollPresenter)
+        {
+            if (scrollPresenter.State == ScrollingInteractionState.Interaction)
+            {
+                m_preferMouseIndicators = false;
+            }
+        }
+
+        StateChanged?.Invoke(this, args);
     }
 
     private void OnScrollPresenterViewChanged(object sender, object args)
@@ -1919,11 +2399,9 @@ public class ScrollView : Control
         ResetHideIndicatorsTimer();
     }
 
-    private void OnVerticalScrollControllerPointerEntered(
-                                                                                                                                    object sender,
-            PointerRoutedEventArgs args)
+    private void OnVerticalScrollControllerPointerEntered(object sender, PointerRoutedEventArgs args)
     {
-        throw new NotImplementedException();
+        HandleScrollControllerPointerEntered(false /*isForHorizontalScrollController*/);
     }
 
     private void OnVerticalScrollControllerPointerExited(object sender, PointerRoutedEventArgs args)
@@ -2018,24 +2496,106 @@ public class ScrollView : Control
 
     private void UnhookScrollViewEvents()
     {
-        throw new NotImplementedException();
+        GettingFocus -= OnScrollViewGettingFocus;
+        IsEnabledChanged -= OnScrollViewIsEnabledChanged;
+        Unloaded -= OnScrollViewUnloaded;
+
+        if (m_onPointerEnteredEventHandler is not null)
+        {
+            RemoveHandler(UIElement.PointerEnteredEvent, m_onPointerEnteredEventHandler);
+            m_onPointerEnteredEventHandler = null;
+        }
+
+        if (m_onPointerMovedEventHandler is not null)
+        {
+            RemoveHandler(UIElement.PointerMovedEvent, m_onPointerMovedEventHandler);
+            m_onPointerMovedEventHandler = null;
+        }
+
+        if (m_onPointerExitedEventHandler is not null)
+        {
+            RemoveHandler(UIElement.PointerExitedEvent, m_onPointerExitedEventHandler);
+            m_onPointerExitedEventHandler = null;
+        }
+
+        if (m_onPointerPressedEventHandler is not null)
+        {
+            RemoveHandler(UIElement.PointerPressedEvent, m_onPointerPressedEventHandler);
+            m_onPointerPressedEventHandler = null;
+        }
+
+        if (m_onPointerReleasedEventHandler is not null)
+        {
+            RemoveHandler(UIElement.PointerReleasedEvent, m_onPointerReleasedEventHandler);
+            m_onPointerReleasedEventHandler = null;
+        }
+
+        if (m_onPointerCanceledEventHandler is not null)
+        {
+            RemoveHandler(UIElement.PointerCanceledEvent, m_onPointerCanceledEventHandler);
+            m_onPointerCanceledEventHandler = null;
+        }
     }
 
     private void UnhookVerticalScrollControllerEvents(bool isForDestructor)
     {
-        throw new NotImplementedException();
+        if (isForDestructor)
+        {
+        }
+        else
+        {
+        }
+
+        if (m_verticalScrollController is IScrollController verticalScrollController)
+        {
+            verticalScrollController.CanScrollChanged -= OnScrollControllerCanScrollChanged;
+            verticalScrollController.IsScrollingWithMouseChanged -= OnScrollControllerIsScrollingWithMouseChanged;
+        }
+
+        if (m_verticalScrollControllerElement is UIElement verticalScrollControllerElement)
+        {
+            if (m_onVerticalScrollControllerPointerEnteredHandler is not null)
+            {
+                verticalScrollControllerElement.RemoveHandler(UIElement.PointerEnteredEvent, m_onVerticalScrollControllerPointerEnteredHandler);
+                m_onVerticalScrollControllerPointerEnteredHandler = null;
+            }
+
+            if (m_onVerticalScrollControllerPointerExitedHandler is not null)
+            {
+                verticalScrollControllerElement.RemoveHandler(UIElement.PointerExitedEvent, m_onVerticalScrollControllerPointerExitedHandler);
+                m_onVerticalScrollControllerPointerExitedHandler = null;
+            }
+        }
     }
 
-    private void UpdateHorizontalScrollController(
-                                                                                                                                                                                                                                                                                        IScrollController horizontalScrollController,
-        UIElement horizontalScrollControllerElement)
+    private void UpdateHorizontalScrollController(IScrollController horizontalScrollController, UIElement horizontalScrollControllerElement)
     {
-        throw new NotImplementedException();
+        UnhookHorizontalScrollControllerEvents(false /*isForDestructor*/);
+
+        m_horizontalScrollController = (horizontalScrollController);
+        m_horizontalScrollControllerElement = (horizontalScrollControllerElement);
+        HookHorizontalScrollControllerEvents();
+        UpdateScrollPresenterHorizontalScrollController(horizontalScrollController);
     }
 
     private void UpdateScrollControllersAutoHiding(bool forceUpdate = false)
     {
-        throw new NotImplementedException();
+        if ((forceUpdate || m_autoHideScrollBarsState.m_uiSettings5 is null) && m_autoHideScrollControllersValid)
+        {
+            m_autoHideScrollControllersValid = false;
+
+            bool oldAutoHideScrollControllers = m_autoHideScrollControllers;
+            bool newAutoHideScrollControllers = AreScrollControllersAutoHiding();
+
+            if (oldAutoHideScrollControllers != newAutoHideScrollControllers)
+            {
+                UpdateVisualStates(
+                    true  /*useTransitions*/,
+                    false /*showIndicators*/,
+                    false /*hideIndicators*/,
+                    true  /*scrollControllersAutoHidingChanged*/);
+            }
+        }
     }
 
     private void UpdateScrollControllersSeparator(UIElement scrollControllersSeparator)
@@ -2218,6 +2778,14 @@ public class ScrollView : Control
         }
     }
 
+    private void UpdateScrollPresenterHorizontalScrollController(IScrollController horizontalScrollController)
+    {
+        if (_scrollPresenter is not null)
+        {
+            _scrollPresenter.HorizontalScrollController = (horizontalScrollController);
+        }
+    }
+
     private void UpdateScrollPresenterVerticalScrollController(IScrollController verticalScrollController)
     {
         if (_scrollPresenter is { } scrollPresenter)
@@ -2256,5 +2824,26 @@ public class ScrollView : Control
 
         UpdateScrollControllersVisualState(useTransitions, showIndicators, hideIndicators);
         UpdateScrollControllersSeparatorVisualState(useTransitions, scrollControllersAutoHidingChanged);
+    }
+
+    private struct AutoHideScrollBarsState
+    {
+        internal UISettings m_uiSettings5;
+
+        internal void HookUISettingsEvent(ScrollView scrollView)
+        {
+            if (m_uiSettings5 is null)
+            {
+                if (ApiInformation.IsReadOnlyPropertyPresent("Windows.UI.ViewManagement.UISettings", "AutoHideScrollBars"))
+                {
+                    m_uiSettings5 = new UISettings();
+                }
+
+                if (m_uiSettings5 is not null)
+                {
+                    m_uiSettings5.AutoHideScrollBarsChanged += scrollView.OnAutoHideScrollBarsChanged;
+                }
+            }
+        }
     }
 }

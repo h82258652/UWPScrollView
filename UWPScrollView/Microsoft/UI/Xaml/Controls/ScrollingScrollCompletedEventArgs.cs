@@ -7,6 +7,8 @@ namespace Microsoft.UI.Xaml.Controls;
 /// </summary>
 public sealed class ScrollingScrollCompletedEventArgs
 {
+    private int m_offsetsChangeCorrelationId = -1;
+
     private ScrollingScrollCompletedEventArgs()
     {
     }
@@ -18,7 +20,7 @@ public sealed class ScrollingScrollCompletedEventArgs
     {
         get
         {
-            throw new NotImplementedException();
+            return m_offsetsChangeCorrelationId;
         }
     }
 }

@@ -19,17 +19,10 @@ public sealed class ScrollControllerPanRequestedEventArgs
     /// <summary>
     /// Gets or sets a value that indicates whether or not the pan manipulation was successfully initiated.
     /// </summary>
-    public bool Handled
-    {
-        get;
-        set;
-    }
+    public bool Handled { get; set; }
 
     /// <summary>
     /// Gets he <see cref="PointerPoint"/> instance associated with the user gesture that initiated the <see cref="IScrollControllerPanningInfo.PanRequested"/> event.
     /// </summary>
-    public PointerPoint PointerPoint
-    {
-        get;
-    }
+    public PointerPoint PointerPoint { get; }
 }
