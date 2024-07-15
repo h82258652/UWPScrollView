@@ -222,9 +222,7 @@ public class ScrollView : Control
         new PropertyMetadata(ScrollingZoomMode.Disabled, OnZoomModePropertyChanged));
 
     private const string s_horizontalScrollBarPartName = "PART_HorizontalScrollBar";
-
     private const string s_IScrollAnchorProviderNotImpl = "Template part named PART_ScrollPresenter does not implement IScrollAnchorProvider.";
-
     private const string s_mouseIndicatorStateName = "MouseIndicator";
 
     /// <summary>
@@ -233,13 +231,9 @@ public class ScrollView : Control
     private const long s_noIndicatorCountdown = 2000 * 10000;
 
     private const string s_noIndicatorStateName = "NoIndicator";
-
     private const int s_noOpCorrelationId = -1;
-
     private const string s_noScrollPresenterPart = "No template part named PART_ScrollPresenter was loaded.";
-
     private const string s_rootPartName = "PART_Root";
-
     private const string s_scrollBarsSeparatorCollapsed = "ScrollBarsSeparatorCollapsed";
     private const string s_scrollBarsSeparatorCollapsedDisabled = "ScrollBarsSeparatorCollapsedDisabled";
     private const string s_scrollBarsSeparatorCollapsedWithoutAnimation = "ScrollBarsSeparatorCollapsedWithoutAnimation";
@@ -247,28 +241,27 @@ public class ScrollView : Control
     private const string s_scrollBarsSeparatorExpanded = "ScrollBarsSeparatorExpanded";
     private const string s_scrollBarsSeparatorExpandedWithoutAnimation = "ScrollBarsSeparatorExpandedWithoutAnimation";
     private const string s_scrollBarsSeparatorPartName = "PART_ScrollBarsSeparator";
-
     private const string s_scrollPresenterPartName = "PART_ScrollPresenter";
-
     private const string s_touchIndicatorStateName = "TouchIndicator";
-
     private const string s_verticalScrollBarPartName = "PART_VerticalScrollBar";
-
-    private ScrollPresenter? _scrollPresenter;
-
-    private AutoHideScrollBarsState m_autoHideScrollBarsState;
-
-    private bool m_autoHideScrollControllers = false;
-
-    private bool m_autoHideScrollControllersValid = false;
 
     /// <summary>
     /// List of temporary ScrollViewBringIntoViewOperation instances used to track expected
     /// ScrollPresenter::BringingIntoView occurrences due to navigation.
     /// </summary>
-    private List<ScrollViewBringIntoViewOperation> m_bringIntoViewOperations;
+    private readonly List<ScrollViewBringIntoViewOperation> m_bringIntoViewOperations = new();
 
-    private DispatcherQueue m_dispatcherQueue = DispatcherQueue.GetForCurrentThread();
+    private readonly DispatcherQueue m_dispatcherQueue = DispatcherQueue.GetForCurrentThread();
+    private ScrollPresenter? _scrollPresenter;
+
+    /// <summary>
+    /// Used to detect changes for UISettings.AutoHideScrollBars
+    /// </summary>
+    private AutoHideScrollBarsState m_autoHideScrollBarsState;
+
+    private bool m_autoHideScrollControllers = false;
+
+    private bool m_autoHideScrollControllersValid = false;
     private FocusInputDeviceKind m_focusInputDeviceKind = FocusInputDeviceKind.None;
 
     /// <summary>
@@ -279,12 +272,14 @@ public class ScrollView : Control
     private DispatcherTimer m_hideIndicatorsTimer;
 
     private int m_horizontalAddScrollVelocityDirection;
+
     private int m_horizontalAddScrollVelocityOffsetChangeCorrelationId = -1;
+
     private ScrollBarController? m_horizontalScrollBarController;
 
-    private IScrollController m_horizontalScrollController;
+    private IScrollController? m_horizontalScrollController;
 
-    private UIElement m_horizontalScrollControllerElement;
+    private UIElement? m_horizontalScrollControllerElement;
 
     /// <summary>
     /// Set to the values of IScrollController::IsScrollingWithMouse.
@@ -315,17 +310,21 @@ public class ScrollView : Control
 
     private object? m_onHorizontalScrollControllerPointerEnteredHandler;
     private object? m_onHorizontalScrollControllerPointerExitedHandler;
-    private object m_onPointerCanceledEventHandler;
-    private object m_onPointerEnteredEventHandler;
-    private object m_onPointerExitedEventHandler;
-    private object m_onPointerMovedEventHandler;
-    private object m_onPointerPressedEventHandler;
-    private object m_onPointerReleasedEventHandler;
-    private object m_onVerticalScrollControllerPointerEnteredHandler;
-    private object m_onVerticalScrollControllerPointerExitedHandler;
+    private object? m_onPointerCanceledEventHandler;
+    private object? m_onPointerEnteredEventHandler;
+    private object? m_onPointerExitedEventHandler;
+    private object? m_onPointerMovedEventHandler;
+    private object? m_onPointerPressedEventHandler;
+    private object? m_onPointerReleasedEventHandler;
+    private object? m_onVerticalScrollControllerPointerEnteredHandler;
+    private object? m_onVerticalScrollControllerPointerExitedHandler;
+
+    /// <summary>
+    /// Set to True to favor mouse indicators over panning indicators for the scroll controllers.
+    /// </summary>
     private bool m_preferMouseIndicators = false;
 
-    private UIElement m_scrollControllersSeparatorElement;
+    private UIElement? m_scrollControllersSeparatorElement;
 
     private long m_scrollPresenterComputedHorizontalScrollModeChangedToken;
 
@@ -337,7 +336,9 @@ public class ScrollView : Control
     private bool m_showingMouseIndicators = false;
 
     private int m_verticalAddScrollVelocityDirection;
+
     private int m_verticalAddScrollVelocityOffsetChangeCorrelationId = -1;
+
     private ScrollBarController? m_verticalScrollBarController;
 
     private IScrollController m_verticalScrollController;
@@ -703,6 +704,26 @@ public class ScrollView : Control
     }
 
     /// <summary>
+    /// Registers a <see cref="UIElement"/> as a potential scroll anchor.
+    /// </summary>
+    /// <param name="element">A <see cref="UIElement"/> within the subtree of the <see cref="ScrollView"/>.</param>
+    public void RegisterAnchorCandidate(UIElement element)
+    {
+        if (_scrollPresenter is { } scrollPresenter)
+        {
+            if (scrollPresenter is IScrollAnchorProvider scrollPresenterAsAnchorProvider)
+            {
+                scrollPresenterAsAnchorProvider.RegisterAnchorCandidate(element);
+                return;
+            }
+
+            throw new InvalidOperationException(s_IScrollAnchorProviderNotImpl);
+        }
+
+        throw new InvalidOperationException(s_noScrollPresenterPart);
+    }
+
+    /// <summary>
     /// Asynchronously scrolls by the specified delta amount with animations enabled and snap points respected.
     /// </summary>
     /// <param name="horizontalOffsetDelta">The offset to scroll by horizontally.</param>
@@ -746,6 +767,26 @@ public class ScrollView : Control
     public int ScrollTo(double horizontalOffset, double verticalOffset, ScrollingScrollOptions? options)
     {
         return _scrollPresenter?.ScrollTo(horizontalOffset, verticalOffset, options) ?? s_noOpCorrelationId;
+    }
+
+    /// <summary>
+    /// Unregisters a <see cref="UIElement"/> as a potential scroll anchor.
+    /// </summary>
+    /// <param name="element">A <see cref="UIElement"/> within the subtree of the <see cref="ScrollView"/>.</param>
+    public void UnregisterAnchorCandidate(UIElement element)
+    {
+        if (_scrollPresenter is { } scrollPresenter)
+        {
+            if (scrollPresenter is IScrollAnchorProvider scrollPresenterAsAnchorProvider)
+            {
+                scrollPresenterAsAnchorProvider.UnregisterAnchorCandidate(element);
+                return;
+            }
+
+            throw new InvalidOperationException(s_IScrollAnchorProviderNotImpl);
+        }
+
+        throw new InvalidOperationException(s_noScrollPresenterPart);
     }
 
     /// <summary>
@@ -1162,13 +1203,13 @@ public class ScrollView : Control
 
     private bool AreAllScrollControllersCollapsed()
     {
-        return !SharedHelpers.IsAncestor(m_horizontalScrollControllerElement as DependencyObject /*child*/, this /*parent*/, true /*checkVisibility*/) &&
+        return !SharedHelpers.IsAncestor(m_horizontalScrollControllerElement /*child*/, this /*parent*/, true /*checkVisibility*/) &&
             !SharedHelpers.IsAncestor(m_verticalScrollControllerElement as DependencyObject /*child*/, this /*parent*/, true /*checkVisibility*/);
     }
 
     private bool AreBothScrollControllersVisible()
     {
-        return SharedHelpers.IsAncestor(m_horizontalScrollControllerElement as DependencyObject /*child*/, this /*parent*/, true /*checkVisibility*/) &&
+        return SharedHelpers.IsAncestor(m_horizontalScrollControllerElement /*child*/, this /*parent*/, true /*checkVisibility*/) &&
         SharedHelpers.IsAncestor(m_verticalScrollControllerElement as DependencyObject /*child*/, this /*parent*/, true /*checkVisibility*/);
     }
 
@@ -1523,16 +1564,16 @@ public class ScrollView : Control
     {
         Debug.Assert(_scrollPresenter != null);
         Debug.Assert(navigationDirection != FocusNavigationDirection.None);
-        var scrollPresenter = _scrollPresenter as ScrollPresenter;
+        ScrollPresenter scrollPresenter = _scrollPresenter as ScrollPresenter;
 
         FocusNavigationDirection focusDirection = navigationDirection;
 
         FindNextElementOptions findNextElementOptions = new();
-        findNextElementOptions.SearchRoot = (scrollPresenter.Content);
+        findNextElementOptions.SearchRoot = scrollPresenter.Content;
 
         if (isPageNavigation)
         {
-            var localBounds = new Rect(0, 0, (float)(scrollPresenter.ActualWidth), (float)(scrollPresenter.ActualHeight));
+            Rect localBounds = new Rect(0, 0, (float)scrollPresenter.ActualWidth, (float)scrollPresenter.ActualHeight);
             var globalBounds = scrollPresenter.TransformToVisual(null).TransformBounds(localBounds);
             const int numPagesLookAhead = 2;
 
@@ -1560,8 +1601,8 @@ public class ScrollView : Control
                     break;
             }
 
-            findNextElementOptions.HintRect = (hintRect);
-            findNextElementOptions.ExclusionRect = (hintRect);
+            findNextElementOptions.HintRect = hintRect;
+            findNextElementOptions.ExclusionRect = hintRect;
             focusDirection = FocusHelper.GetOppositeDirection(navigationDirection);
         }
 
@@ -1616,7 +1657,7 @@ public class ScrollView : Control
         {
             bool shouldScroll = false;
             bool shouldMoveFocus = false;
-            DependencyObject nextElement = null;
+            DependencyObject? nextElement = null;
 
             if (navigationDirection != FocusNavigationDirection.None)
             {
@@ -1629,9 +1670,9 @@ public class ScrollView : Control
                 Debug.Assert(nextElementAsUIE != null);
 
                 var nextElementAsFe = nextElementAsUIE as FrameworkElement;
-                var rect = new Rect(0, 0, (float)(nextElementAsFe.ActualWidth), (float)(nextElementAsFe.ActualHeight));
+                var rect = new Rect(0, 0, (float)nextElementAsFe.ActualWidth, (float)nextElementAsFe.ActualHeight);
                 var elementBounds = nextElementAsUIE.TransformToVisual(scrollPresenter).TransformBounds(rect);
-                var viewport = new Rect(0, 0, (float)(scrollPresenter.ActualWidth), (float)(scrollPresenter.ActualHeight));
+                var viewport = new Rect(0, 0, (float)scrollPresenter.ActualWidth, (float)scrollPresenter.ActualHeight);
 
                 // Extend the viewport in the direction we are moving:
                 Rect extendedViewport = viewport;
@@ -1751,7 +1792,7 @@ public class ScrollView : Control
             }
         }
 
-        args.Handled = (isHandled);
+        args.Handled = isHandled;
     }
 
     private void HandleScrollControllerPointerEntered(bool isForHorizontalScrollController)
@@ -1811,7 +1852,7 @@ public class ScrollView : Control
 
         if (!m_keepIndicatorsShowing && IsLoaded)
         {
-            DispatcherTimer hideIndicatorsTimer = null;
+            DispatcherTimer? hideIndicatorsTimer = null;
 
             if (m_hideIndicatorsTimer is not null)
             {
@@ -1826,7 +1867,7 @@ public class ScrollView : Control
                 hideIndicatorsTimer = new DispatcherTimer();
                 hideIndicatorsTimer.Interval = TimeSpan.FromTicks(s_noIndicatorCountdown);
                 hideIndicatorsTimer.Tick += OnHideIndicatorsTimerTick;
-                m_hideIndicatorsTimer = (hideIndicatorsTimer);
+                m_hideIndicatorsTimer = hideIndicatorsTimer;
             }
 
             hideIndicatorsTimer.Start();
@@ -2068,7 +2109,7 @@ public class ScrollView : Control
         ScrollAnimationStarting?.Invoke(this, args);
     }
 
-    private void OnScrollControllerCanScrollChanged(IScrollController sender, object args)
+    private void OnScrollControllerCanScrollChanged(IScrollController sender, object? args)
     {
         // IScrollController::CanScroll changed and affect the scroll controller's visibility when its visibility mode is Auto.
         if (m_horizontalScrollController is not null && m_horizontalScrollController == sender)
@@ -2081,7 +2122,7 @@ public class ScrollView : Control
         }
     }
 
-    private void OnScrollControllerIsScrollingWithMouseChanged(IScrollController sender, object args)
+    private void OnScrollControllerIsScrollingWithMouseChanged(IScrollController sender, object? args)
     {
         bool isScrollControllerScrollingWithMouse = sender.IsScrollingWithMouse;
         bool showIndicators = false;
@@ -2572,8 +2613,8 @@ public class ScrollView : Control
     {
         UnhookHorizontalScrollControllerEvents(false /*isForDestructor*/);
 
-        m_horizontalScrollController = (horizontalScrollController);
-        m_horizontalScrollControllerElement = (horizontalScrollControllerElement);
+        m_horizontalScrollController = horizontalScrollController;
+        m_horizontalScrollControllerElement = horizontalScrollControllerElement;
         HookHorizontalScrollControllerEvents();
         UpdateScrollPresenterHorizontalScrollController(horizontalScrollController);
     }
@@ -2600,7 +2641,7 @@ public class ScrollView : Control
 
     private void UpdateScrollControllersSeparator(UIElement scrollControllersSeparator)
     {
-        m_scrollControllersSeparatorElement = (scrollControllersSeparator);
+        m_scrollControllersSeparatorElement = scrollControllersSeparator;
     }
 
     private void UpdateScrollControllersSeparatorVisualState(bool useTransitions = true, bool scrollControllersAutoHidingChanged = false)

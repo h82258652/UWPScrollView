@@ -7,7 +7,7 @@ namespace Microsoft.UI;
 
 internal static class SharedHelpers
 {
-    internal static bool IsAncestor(DependencyObject child, ScrollView parent, bool checkVisibility)
+    internal static bool IsAncestor(DependencyObject? child, ScrollView? parent, bool checkVisibility)
     {
         if (child is null || parent is null || child == parent)
         {
