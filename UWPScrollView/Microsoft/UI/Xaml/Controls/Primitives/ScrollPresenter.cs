@@ -77,17 +77,29 @@ public class ScrollPresenter : Panel, IScrollAnchorProvider
     /// <summary>
     /// Identifies the <see cref="HorizontalScrollChainMode"/> dependency property.
     /// </summary>
-    public static readonly DependencyProperty HorizontalScrollChainModeProperty;
+    public static readonly DependencyProperty HorizontalScrollChainModeProperty = DependencyProperty.Register(
+        nameof(HorizontalScrollChainMode),
+        typeof(ScrollingChainMode),
+        typeof(ScrollPresenter),
+        new PropertyMetadata(ScrollingChainMode.Auto, OnHorizontalScrollChainModePropertyChanged));
 
     /// <summary>
     /// Identifies the <see cref="HorizontalScrollMode"/> dependency property.
     /// </summary>
-    public static readonly DependencyProperty HorizontalScrollModeProperty;
+    public static readonly DependencyProperty HorizontalScrollModeProperty = DependencyProperty.Register(
+        nameof(HorizontalScrollMode),
+        typeof(ScrollingScrollMode),
+        typeof(ScrollPresenter),
+        new PropertyMetadata(ScrollingScrollMode.Auto, OnHorizontalScrollModePropertyChanged));
 
     /// <summary>
     /// Identifies the <see cref="HorizontalScrollRailMode"/> dependency property.
     /// </summary>
-    public static readonly DependencyProperty HorizontalScrollRailModeProperty;
+    public static readonly DependencyProperty HorizontalScrollRailModeProperty = DependencyProperty.Register(
+        nameof(HorizontalScrollRailMode),
+        typeof(ScrollingRailMode),
+        typeof(ScrollPresenter),
+        new PropertyMetadata(ScrollingRailMode.Enabled, OnHorizontalScrollRailModePropertyChanged));
 
     /// <summary>
     /// Identifies the <see cref="IgnoredInputKinds"/> dependency property.
@@ -97,12 +109,20 @@ public class ScrollPresenter : Panel, IScrollAnchorProvider
     /// <summary>
     /// Identifies the <see cref="MaxZoomFactor"/> dependency property.
     /// </summary>
-    public static readonly DependencyProperty MaxZoomFactorProperty;
+    public static readonly DependencyProperty MaxZoomFactorProperty = DependencyProperty.Register(
+        nameof(MaxZoomFactor),
+        typeof(double),
+        typeof(ScrollPresenter),
+        new PropertyMetadata(10d, OnMaxZoomFactorPropertyChanged));
 
     /// <summary>
     /// Identifies the <see cref="MinZoomFactor"/> dependency property.
     /// </summary>
-    public static readonly DependencyProperty MinZoomFactorProperty;
+    public static readonly DependencyProperty MinZoomFactorProperty = DependencyProperty.Register(
+        nameof(MinZoomFactor),
+        typeof(double),
+        typeof(ScrollPresenter),
+        new PropertyMetadata(0.1d, OnMinZoomFactorPropertyChanged));
 
     /// <summary>
     /// Identifies the <see cref="VerticalAnchorRatio"/> dependency property.
@@ -131,7 +151,11 @@ public class ScrollPresenter : Panel, IScrollAnchorProvider
     /// <summary>
     /// Identifies the <see cref="ZoomChainMode"/> dependency property.
     /// </summary>
-    public static readonly DependencyProperty ZoomChainModeProperty;
+    public static readonly DependencyProperty ZoomChainModeProperty = DependencyProperty.Register(
+        nameof(ZoomChainMode),
+        typeof(ScrollingChainMode),
+        typeof(ScrollPresenter),
+        new PropertyMetadata(ScrollingChainMode.Auto, OnZoomChainModePropertyChanged));
 
     /// <summary>
     /// Identifies the <see cref="ZoomMode"/> dependency property.
@@ -142,22 +166,45 @@ public class ScrollPresenter : Panel, IScrollAnchorProvider
         typeof(ScrollView),
         new PropertyMetadata(ScrollingZoomMode.Disabled, OnZoomModePropertyChanged));
 
+    /// <summary>
+    /// Number of pixels scrolled when the automation peer requests a line-type change.
+    /// </summary>
+    private const double c_scrollPresenterLineDelta = 16;
+
     private const uint E_ACCESSDENIED = 0x80070005;
+
     private const string s_extentSourcePropertyName = "Extent";
+
     private const string s_maxOffsetPropertyName = "MaxOffset";
+
     private const string s_maxPositionSourcePropertyName = "MaxPosition";
 
     private const string s_minOffsetPropertyName = "MinOffset";
+
     private const string s_minPositionSourcePropertyName = "MinPosition";
 
     private const string s_multiplierPropertyName = "Multiplier";
+
     private const int s_noOpCorrelationId = -1;
+
     private const string s_offsetPropertyName = "Offset";
+
     private const string s_offsetSourcePropertyName = "Offset";
+
     private const string s_positionSourcePropertyName = "Position";
+
+    /// <summary>
+    /// Number of ticks ellapsed before restarting the Translation and Scale animations to allow the Content
+    /// rasterization to be triggered after the Idle State is reached or a zoom factor change operation completed.
+    /// </summary>
+    private const int s_translationAndZoomFactorAnimationsRestartTicks = 4;
+
     private const string s_viewportSourcePropertyName = "Viewport";
+
     private const string s_zoomFactorSourcePropertyName = "ZoomFactor";
+
     private List<UIElement> m_anchorCandidates;
+
     private UIElement m_anchorElement;
 
     private Rect m_anchorElementBounds;
@@ -179,10 +226,17 @@ public class ScrollPresenter : Panel, IScrollAnchorProvider
     private CompositionPropertySet m_expressionAnimationSources;
 
     private IScrollController m_horizontalScrollController;
+
     private CompositionPropertySet m_horizontalScrollControllerExpressionAnimationSources;
+
+    private ExpressionAnimation m_horizontalScrollControllerMaxOffsetExpressionAnimation;
+    private ExpressionAnimation m_horizontalScrollControllerOffsetExpressionAnimation;
     private IScrollControllerPanningInfo m_horizontalScrollControllerPanningInfo;
+
+    private VisualInteractionSource m_horizontalScrollControllerVisualInteractionSource;
     private InteractionTracker m_interactionTracker;
 
+    private List<InteractionTrackerAsyncOperation> m_interactionTrackerAsyncOperations;
     private IInteractionTrackerOwner m_interactionTrackerOwner;
 
     /// <summary>
@@ -193,12 +247,18 @@ public class ScrollPresenter : Panel, IScrollAnchorProvider
     private ExpressionAnimation m_maxPositionExpressionAnimation;
 
     private ExpressionAnimation m_maxPositionSourceExpressionAnimation;
+
     private ExpressionAnimation m_minPositionExpressionAnimation;
 
     private ExpressionAnimation m_minPositionSourceExpressionAnimation;
+
     private ExpressionAnimation m_positionSourceExpressionAnimation;
+
     private VisualInteractionSource m_scrollPresenterVisualInteractionSource;
+
     private ScrollingInteractionState m_state = ScrollingInteractionState.Idle;
+
+    private short m_translationAndZoomFactorAnimationsRestartTicksCountdown;
 
     private ExpressionAnimation m_translationExpressionAnimation;
 
@@ -207,9 +267,16 @@ public class ScrollPresenter : Panel, IScrollAnchorProvider
     private double m_unzoomedExtentWidth;
 
     private IScrollController m_verticalScrollController;
+
     private CompositionPropertySet m_verticalScrollControllerExpressionAnimationSources;
+
+    private ExpressionAnimation m_verticalScrollControllerMaxOffsetExpressionAnimation;
+    private ExpressionAnimation m_verticalScrollControllerOffsetExpressionAnimation;
     private IScrollControllerPanningInfo m_verticalScrollControllerPanningInfo;
+
+    private VisualInteractionSource m_verticalScrollControllerVisualInteractionSource;
     private List<ScrollSnapPointBase> m_verticalSnapPoints;
+
     private double m_viewportHeight;
 
     private double m_viewportWidth;
@@ -223,6 +290,8 @@ public class ScrollPresenter : Panel, IScrollAnchorProvider
     private ExpressionAnimation m_zoomFactorExpressionAnimation;
 
     private ExpressionAnimation m_zoomFactorSourceExpressionAnimation;
+
+    private IList<ZoomSnapPointBase>? m_zoomSnapPoints;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="ScrollPresenter"/> class.
@@ -335,7 +404,13 @@ public class ScrollPresenter : Panel, IScrollAnchorProvider
     /// <summary>
     /// Gets the most recently chosen <see cref="UIElement"/> for scroll anchoring after a layout pass, if any.
     /// </summary>
-    public UIElement? CurrentAnchor => throw new NotImplementedException();
+    public UIElement? CurrentAnchor
+    {
+        get
+        {
+            return AnchorElement;
+        }
+    }
 
     /// <summary>
     /// Gets a <see cref="CompositionPropertySet"/> of scrolling related property values.
@@ -418,11 +493,11 @@ public class ScrollPresenter : Panel, IScrollAnchorProvider
     {
         get
         {
-            throw new NotImplementedException();
+            return (ScrollingScrollMode)GetValue(HorizontalScrollModeProperty);
         }
         set
         {
-            throw new NotImplementedException();
+            SetValue(HorizontalScrollModeProperty, value);
         }
     }
 
@@ -557,11 +632,11 @@ public class ScrollPresenter : Panel, IScrollAnchorProvider
     {
         get
         {
-            throw new NotImplementedException();
+            return (ScrollingChainMode)GetValue(VerticalScrollChainModeProperty);
         }
         set
         {
-            throw new NotImplementedException();
+            SetValue(VerticalScrollChainModeProperty, value);
         }
     }
 
@@ -587,11 +662,11 @@ public class ScrollPresenter : Panel, IScrollAnchorProvider
     {
         get
         {
-            throw new NotImplementedException();
+            return (ScrollingScrollMode)GetValue(VerticalScrollModeProperty);
         }
         set
         {
-            throw new NotImplementedException();
+            SetValue(VerticalScrollModeProperty, value);
         }
     }
 
@@ -602,11 +677,11 @@ public class ScrollPresenter : Panel, IScrollAnchorProvider
     {
         get
         {
-            throw new NotImplementedException();
+            return (ScrollingRailMode)GetValue(VerticalScrollRailModeProperty);
         }
         set
         {
-            throw new NotImplementedException();
+            SetValue(VerticalScrollRailModeProperty, value);
         }
     }
 
@@ -649,27 +724,15 @@ public class ScrollPresenter : Panel, IScrollAnchorProvider
     /// <summary>
     /// Gets a value that indicates the amount of scaling currently applied to content.
     /// </summary>
-    public float ZoomFactor
-    {
-        get
-        {
-            return m_zoomFactor;
-        }
-    }
+    public float ZoomFactor => m_zoomFactor;
 
     /// <summary>
     /// Gets or sets a value that indicates the ability to zoom in and out by means of user input.
     /// </summary>
     public ScrollingZoomMode ZoomMode
     {
-        get
-        {
-            throw new NotImplementedException();
-        }
-        set
-        {
-            throw new NotImplementedException();
-        }
+        get => (ScrollingZoomMode)GetValue(ZoomModeProperty);
+        set => SetValue(ZoomModeProperty, value);
     }
 
     /// <summary>
@@ -680,6 +743,26 @@ public class ScrollPresenter : Panel, IScrollAnchorProvider
         get
         {
             throw new NotImplementedException();
+        }
+    }
+
+    private UIElement AnchorElement
+    {
+        get
+        {
+            bool isAnchoringElementHorizontally = false;
+            bool isAnchoringElementVertically = false;
+
+            IsAnchoring(out isAnchoringElementHorizontally, out isAnchoringElementVertically, out _, out _);
+
+            if (isAnchoringElementHorizontally || isAnchoringElementVertically)
+            {
+                EnsureAnchorElementSelection();
+            }
+
+            var value = m_anchorElement;
+
+            return value;
         }
     }
 
@@ -907,6 +990,46 @@ public class ScrollPresenter : Panel, IScrollAnchorProvider
         }
     }
 
+    internal void LineDown()
+    {
+        ScrollToVerticalOffset(m_zoomedVerticalOffset + c_scrollPresenterLineDelta);
+    }
+
+    internal void LineLeft()
+    {
+        ScrollToHorizontalOffset(m_zoomedHorizontalOffset - c_scrollPresenterLineDelta);
+    }
+
+    internal void LineRight()
+    {
+        ScrollToHorizontalOffset(m_zoomedHorizontalOffset + c_scrollPresenterLineDelta);
+    }
+
+    internal void LineUp()
+    {
+        ScrollToVerticalOffset(m_zoomedVerticalOffset - c_scrollPresenterLineDelta);
+    }
+
+    internal void PageDown()
+    {
+        ScrollToVerticalOffset(m_zoomedVerticalOffset + ViewportHeight);
+    }
+
+    internal void PageLeft()
+    {
+        ScrollToHorizontalOffset(m_zoomedHorizontalOffset - ViewportWidth);
+    }
+
+    internal void PageRight()
+    {
+        ScrollToHorizontalOffset(m_zoomedHorizontalOffset + ViewportWidth);
+    }
+
+    internal void PageUp()
+    {
+        ScrollToVerticalOffset(m_zoomedVerticalOffset - ViewportHeight);
+    }
+
     /// <inheritdoc/>
     protected override Size ArrangeOverride(Size finalSize)
     {
@@ -967,6 +1090,16 @@ public class ScrollPresenter : Panel, IScrollAnchorProvider
         throw new NotImplementedException();
     }
 
+    private static InteractionSourceMode InteractionSourceModeFromScrollMode(ScrollingScrollMode scrollMode)
+    {
+        throw new NotImplementedException();
+    }
+
+    private static InteractionSourceMode InteractionSourceModeFromZoomMode(ScrollingZoomMode zoomMode)
+    {
+        throw new NotImplementedException();
+    }
+
     private static bool IsAnchorRatioValid(double value)
     {
         return double.IsNaN(value) || (!double.IsInfinity(value) && value >= 0 && value <= 1);
@@ -1002,7 +1135,37 @@ public class ScrollPresenter : Panel, IScrollAnchorProvider
         throw new NotImplementedException();
     }
 
+    private static void OnHorizontalScrollChainModePropertyChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+    {
+        throw new NotImplementedException();
+    }
+
+    private static void OnHorizontalScrollModePropertyChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+    {
+        throw new NotImplementedException();
+    }
+
+    private static void OnHorizontalScrollRailModePropertyChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+    {
+        throw new NotImplementedException();
+    }
+
+    private static void OnMaxZoomFactorPropertyChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+    {
+        throw new NotImplementedException();
+    }
+
+    private static void OnMinZoomFactorPropertyChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+    {
+        throw new NotImplementedException();
+    }
+
     private static void OnVerticalAnchorRatioPropertyChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+    {
+        throw new NotImplementedException();
+    }
+
+    private static void OnZoomChainModePropertyChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
     {
         throw new NotImplementedException();
     }
@@ -1057,6 +1220,26 @@ public class ScrollPresenter : Panel, IScrollAnchorProvider
         throw new NotImplementedException();
     }
 
+    private void CompleteDelayedOperations()
+    {
+        if (m_interactionTrackerAsyncOperations.Count <= 0)
+        {
+            return;
+        }
+
+        for (var i = 0; i < m_interactionTrackerAsyncOperations.Count; i++)
+        {
+            var interactionTrackerAsyncOperation = m_interactionTrackerAsyncOperations[i];
+
+            if (interactionTrackerAsyncOperation.IsDelayed())
+            {
+                CompleteViewChange(interactionTrackerAsyncOperation, ScrollPresenterViewChangeResult.Interrupted);
+                m_interactionTrackerAsyncOperations.Remove(interactionTrackerAsyncOperation);
+                i--;
+            }
+        }
+    }
+
     private void CompleteInteractionTrackerOperations(
         int requestId,
         ScrollPresenterViewChangeResult operationResult,
@@ -1067,12 +1250,135 @@ public class ScrollPresenter : Panel, IScrollAnchorProvider
         bool completePriorNonAnimatedOperations,
         bool completePriorAnimatedOperations)
     {
+        Debug.Assert(requestId != 0);
+        Debug.Assert(completeNonAnimatedOperation || completeAnimatedOperation || completePriorNonAnimatedOperations || completePriorAnimatedOperations);
+
+        if (m_interactionTrackerAsyncOperations.Count <= 0)
+        {
+            return;
+        }
+
+        for (var i = 0; i < m_interactionTrackerAsyncOperations.Count; i ++)
+        {
+            var interactionTrackerAsyncOperation = m_interactionTrackerAsyncOperations[i];
+
+            bool isMatch = requestId == -1 || requestId == interactionTrackerAsyncOperation.GetRequestId();
+            bool isPriorMatch = requestId > interactionTrackerAsyncOperation.GetRequestId() && -1 != interactionTrackerAsyncOperation.GetRequestId();
+
+            if ((isPriorMatch && (completePriorNonAnimatedOperations || completePriorAnimatedOperations)) ||
+                (isMatch && (completeNonAnimatedOperation || completeAnimatedOperation)))
+            {
+                bool isOperationAnimated = interactionTrackerAsyncOperation.IsAnimated();
+                bool complete =
+                    (isMatch && completeNonAnimatedOperation && !isOperationAnimated) ||
+                    (isMatch && completeAnimatedOperation && isOperationAnimated) ||
+                    (isPriorMatch && completePriorNonAnimatedOperations && !isOperationAnimated) ||
+                    (isPriorMatch && completePriorAnimatedOperations && isOperationAnimated);
+
+                if (complete)
+                {
+                    CompleteViewChange(
+                        interactionTrackerAsyncOperation,
+                        isMatch ? operationResult : (isOperationAnimated ? priorAnimatedOperationsResult : priorNonAnimatedOperationsResult));
+
+                    var interactionTrackerAsyncOperationRemoved = interactionTrackerAsyncOperation;
+
+                    m_interactionTrackerAsyncOperations.Remove(interactionTrackerAsyncOperationRemoved);
+                    i--;
+
+                    switch (interactionTrackerAsyncOperationRemoved.GetOperationType())
+                    {
+                        case InteractionTrackerAsyncOperationType.TryUpdatePositionWithAdditionalVelocity:
+                            PostProcessOffsetsChange(interactionTrackerAsyncOperationRemoved);
+                            break;
+                        case InteractionTrackerAsyncOperationType.TryUpdateScaleWithAdditionalVelocity:
+                            PostProcessZoomFactorChange(interactionTrackerAsyncOperationRemoved);
+                            break;
+                    }
+                }
+            }
+        } 
+    }
+
+    private void PostProcessZoomFactorChange(
+        InteractionTrackerAsyncOperation interactionTrackerAsyncOperation)
+    {
         throw new NotImplementedException();
+    }
+
+    private void PostProcessOffsetsChange(
+       InteractionTrackerAsyncOperation interactionTrackerAsyncOperation)
+    {
+        throw new NotImplementedException();
+    }
+
+    private void CompleteViewChange(
+            InteractionTrackerAsyncOperation interactionTrackerAsyncOperation,
+        ScrollPresenterViewChangeResult result)
+    {
+        int viewChangeCorrelationId = interactionTrackerAsyncOperation.GetViewChangeCorrelationId();
+
+        interactionTrackerAsyncOperation.SetIsCompleted(true);
+
+        bool onHorizontalOffsetChangeCompleted = false;
+        bool onVerticalOffsetChangeCompleted = false;
+
+        switch ((int)(interactionTrackerAsyncOperation.GetOperationTrigger()))
+        {
+            case (int)(InteractionTrackerAsyncOperationTrigger.DirectViewChange):
+            case (int)(InteractionTrackerAsyncOperationTrigger.BringIntoViewRequest):
+                switch (interactionTrackerAsyncOperation.GetOperationType())
+                {
+                    case InteractionTrackerAsyncOperationType.TryUpdatePosition:
+                    case InteractionTrackerAsyncOperationType.TryUpdatePositionBy:
+                    case InteractionTrackerAsyncOperationType.TryUpdatePositionWithAnimation:
+                    case InteractionTrackerAsyncOperationType.TryUpdatePositionWithAdditionalVelocity:
+                        RaiseViewChangeCompleted(true /*isForScroll*/, result, viewChangeCorrelationId);
+                        break;
+
+                    default:
+                        // Stop Translation and Scale animations if needed, to trigger rasterization of Content & avoid fuzzy text rendering for instance.
+                        StopTranslationAndZoomFactorExpressionAnimations();
+
+                        RaiseViewChangeCompleted(false /*isForScroll*/, result, viewChangeCorrelationId);
+                        break;
+                }
+                break;
+
+            case (int)(InteractionTrackerAsyncOperationTrigger.HorizontalScrollControllerRequest):
+                onHorizontalOffsetChangeCompleted = true;
+                break;
+
+            case (int)(InteractionTrackerAsyncOperationTrigger.VerticalScrollControllerRequest):
+                onVerticalOffsetChangeCompleted = true;
+                break;
+
+            case (int)(InteractionTrackerAsyncOperationTrigger.HorizontalScrollControllerRequest) |
+                 (int)(InteractionTrackerAsyncOperationTrigger.VerticalScrollControllerRequest):
+                onHorizontalOffsetChangeCompleted = true;
+                onVerticalOffsetChangeCompleted = true;
+                break;
+        }
+
+        if (onHorizontalOffsetChangeCompleted && m_horizontalScrollController is not null)
+        {
+            m_horizontalScrollController.NotifyRequestedScrollCompleted(viewChangeCorrelationId);
+        }
+
+        if (onVerticalOffsetChangeCompleted && m_verticalScrollController is not null)
+        {
+            m_verticalScrollController.NotifyRequestedScrollCompleted(viewChangeCorrelationId);
+        }
     }
 
     private void CustomAnimationStateEntered(InteractionTrackerCustomAnimationStateEnteredArgs args)
     {
         UpdateState(ScrollingInteractionState.Animation);
+    }
+
+    private void EnsureAnchorElementSelection()
+    {
+        throw new NotImplementedException();
     }
 
     private void EnsureExpressionAnimationSources()
@@ -1142,7 +1448,35 @@ public class ScrollPresenter : Panel, IScrollAnchorProvider
         }
     }
 
+    private void EnsureScrollControllerExpressionAnimationSources(
+        ScrollPresenterDimension dimension)
+    {
+        throw new NotImplementedException();
+    }
+
+    private void EnsureScrollControllerVisualInteractionSource(
+        Visual panningElementAncestorVisual,
+        ScrollPresenterDimension dimension)
+    {
+        throw new NotImplementedException();
+    }
+
     private void EnsureScrollPresenterVisualInteractionSource()
+    {
+        if (m_scrollPresenterVisualInteractionSource is null)
+        {
+            EnsureInteractionTracker();
+
+            Visual scrollPresenterVisual = ElementCompositionPreview.GetElementVisual(this);
+            VisualInteractionSource scrollPresenterVisualInteractionSource = VisualInteractionSource.Create(scrollPresenterVisual);
+            m_interactionTracker.InteractionSources.Add(scrollPresenterVisualInteractionSource);
+            m_scrollPresenterVisualInteractionSource = scrollPresenterVisualInteractionSource;
+            UpdateManipulationRedirectionMode();
+            RaiseInteractionSourcesChanged();
+        }
+    }
+
+    private void UpdateManipulationRedirectionMode()
     {
         throw new NotImplementedException();
     }
@@ -1257,14 +1591,26 @@ public class ScrollPresenter : Panel, IScrollAnchorProvider
         throw new NotImplementedException();
     }
 
-    private double GetZoomedExtentHeight()
+    private string GetMaxPositionExpression(
+        UIElement content)
     {
         throw new NotImplementedException();
     }
 
-    private double GetZoomedExtentWidth()
+    private string GetMinPositionExpression(
+        UIElement content)
     {
         throw new NotImplementedException();
+    }
+
+    private double GetZoomedExtentHeight()
+    {
+        return m_unzoomedExtentHeight * m_zoomFactor;
+    }
+
+    private double GetZoomedExtentWidth()
+    {
+        return m_unzoomedExtentWidth * m_zoomFactor;
     }
 
     private void HookCompositionTargetRendering()
@@ -1277,9 +1623,59 @@ public class ScrollPresenter : Panel, IScrollAnchorProvider
         throw new NotImplementedException();
     }
 
-    private void MaximizeInteractionTrackerOperationsTicksCountdown()
+    private void HookVerticalScrollControllerInteractionSourceEvents(
+        IScrollControllerPanningInfo verticalScrollControllerPanningInfo)
     {
         throw new NotImplementedException();
+    }
+
+    private void HookVerticalScrollControllerPanningInfoEvents(
+        IScrollControllerPanningInfo verticalScrollControllerPanningInfo,
+        bool hasInteractionSource)
+    {
+        Debug.Assert(verticalScrollControllerPanningInfo is not null);
+
+        if (hasInteractionSource)
+        {
+            HookVerticalScrollControllerInteractionSourceEvents(verticalScrollControllerPanningInfo);
+        }
+
+        verticalScrollControllerPanningInfo.Changed += OnScrollControllerPanningInfoChanged;
+    }
+
+    private void IsAnchoring(
+                out bool isAnchoringElementHorizontally,
+        out bool isAnchoringElementVertically,
+        out bool isAnchoringFarEdgeHorizontally,
+        out bool isAnchoringFarEdgeVertically)
+    {
+        throw new NotImplementedException();
+    }
+
+    private bool IsInputKindIgnored(ScrollingInputKinds inputKind)
+    {
+        return (IgnoredInputKinds & inputKind) == inputKind;
+    }
+
+    private void MaximizeInteractionTrackerOperationsTicksCountdown()
+    {
+        if (m_interactionTrackerAsyncOperations.Count <= 0)
+        {
+            return;
+        }
+
+        foreach (var operationsIter in m_interactionTrackerAsyncOperations)
+        {
+            var interactionTrackerAsyncOperation = operationsIter;
+
+            if (!interactionTrackerAsyncOperation.IsDelayed() &&
+                !interactionTrackerAsyncOperation.IsCanceled() &&
+                !interactionTrackerAsyncOperation.IsCompleted() &&
+                interactionTrackerAsyncOperation.IsQueued())
+            {
+                interactionTrackerAsyncOperation.SetMaxTicksCountdown();
+            }
+        }
     }
 
     private void OnCompositionTargetRendering(object sender, object args)
@@ -1292,15 +1688,53 @@ public class ScrollPresenter : Panel, IScrollAnchorProvider
         throw new NotImplementedException();
     }
 
-    private void OnContentSizeChanged(
-        UIElement content)
+    private void OnContentSizeChanged(UIElement content)
     {
-        throw new NotImplementedException();
+        if (m_minPositionExpressionAnimation is not null && m_maxPositionExpressionAnimation is not null)
+        {
+            UpdatePositionBoundaries(content);
+        }
+
+        if (m_interactionTracker is not null && m_translationExpressionAnimation is not null && m_zoomFactorExpressionAnimation is not null)
+        {
+            SetupTransformExpressionAnimations(content);
+        }
     }
 
     private void OnFlowDirectionChanged(DependencyObject sender, DependencyProperty args)
     {
-        throw new NotImplementedException();
+        if (m_interactionTracker is not null)
+        {
+            if (Content is UIElement content)
+            {
+                if (m_minPositionExpressionAnimation is not null && m_maxPositionExpressionAnimation is not null)
+                {
+                    SetupPositionBoundariesExpressionAnimations(content);
+                }
+
+                if (m_translationExpressionAnimation is not null && m_zoomFactorExpressionAnimation is not null)
+                {
+                    SetupTransformExpressionAnimations(content);
+                }
+            }
+
+            if (m_scrollPresenterVisualInteractionSource is not null)
+            {
+                // When the direction is RightToLeft, the center point modifier is function of the ScrollPresenter width, so it needs to be updated.
+                SetupVisualInteractionSourceCenterPointModifier(
+                    m_scrollPresenterVisualInteractionSource,
+                    ScrollPresenterDimension.HorizontalScroll,
+                    true /*flowDirectionChanged*/);
+            }
+
+            // The updates above reset the horizontal HorizontalOffset is 0, so it is brought back to its original value through a non-animated scroll.
+            if (m_zoomedHorizontalOffset > 0.0)
+            {
+                ScrollingScrollOptions options = new ScrollingScrollOptions(ScrollingAnimationMode.Disabled, ScrollingSnapPointsMode.Ignore);
+
+                ScrollTo(m_zoomedHorizontalOffset, m_zoomedVerticalOffset, options);
+            }
+        }
     }
 
     private void OnLoaded(object sender, RoutedEventArgs args)
@@ -1444,6 +1878,54 @@ public class ScrollPresenter : Panel, IScrollAnchorProvider
         throw new NotImplementedException();
     }
 
+    private void OnScrollControllerPanningInfoChanged(
+        IScrollControllerPanningInfo sender,
+        object args)
+    {
+        Debug.Assert(sender == m_horizontalScrollControllerPanningInfo || sender == m_verticalScrollControllerPanningInfo);
+
+        if (m_interactionTracker is null)
+        {
+            return;
+        }
+
+        bool isFromHorizontalScrollController = sender == m_horizontalScrollControllerPanningInfo;
+
+        CompositionPropertySet scrollControllerExpressionAnimationSources =
+            isFromHorizontalScrollController ? m_horizontalScrollControllerExpressionAnimationSources : m_verticalScrollControllerExpressionAnimationSources;
+
+        SetupScrollControllerVisualInterationSource(isFromHorizontalScrollController ? ScrollPresenterDimension.HorizontalScroll : ScrollPresenterDimension.VerticalScroll);
+
+        if (isFromHorizontalScrollController)
+        {
+            if (scrollControllerExpressionAnimationSources != m_horizontalScrollControllerExpressionAnimationSources)
+            {
+                Debug.Assert(m_horizontalScrollControllerPanningInfo is not null);
+
+                m_horizontalScrollControllerPanningInfo.SetPanningElementExpressionAnimationSources(
+                    m_horizontalScrollControllerExpressionAnimationSources,
+                    s_minOffsetPropertyName,
+                    s_maxOffsetPropertyName,
+                    s_offsetPropertyName,
+                    s_multiplierPropertyName);
+            }
+        }
+        else
+        {
+            if (scrollControllerExpressionAnimationSources != m_verticalScrollControllerExpressionAnimationSources)
+            {
+                Debug.Assert(m_verticalScrollControllerPanningInfo is not null);
+
+                m_verticalScrollControllerPanningInfo.SetPanningElementExpressionAnimationSources(
+                    m_verticalScrollControllerExpressionAnimationSources,
+                    s_minOffsetPropertyName,
+                    s_maxOffsetPropertyName,
+                    s_offsetPropertyName,
+                    s_multiplierPropertyName);
+            }
+        }
+    }
+
     private void OnUnloaded(object sender, RoutedEventArgs args)
     {
         if (!IsLoaded)
@@ -1486,20 +1968,33 @@ public class ScrollPresenter : Panel, IScrollAnchorProvider
     }
 
     private void ProcessOffsetsChange(
-          InteractionTrackerAsyncOperationTrigger operationTrigger,
-          OffsetsChangeWithAdditionalVelocity offsetsChangeWithAdditionalVelocity)
+        InteractionTrackerAsyncOperationTrigger operationTrigger,
+        OffsetsChangeWithAdditionalVelocity offsetsChangeWithAdditionalVelocity)
     {
         throw new NotImplementedException();
     }
 
     private bool RaiseBringingIntoView(
-                                                                                                                                                                                                                                                                                                                                                                              double targetZoomedHorizontalOffset,
-      double targetZoomedVerticalOffset,
+        double targetZoomedHorizontalOffset,
+        double targetZoomedVerticalOffset,
         BringIntoViewRequestedEventArgs requestEventArgs,
         int offsetsChangeCorrelationId,
         ref ScrollingSnapPointsMode snapPointsMode)
     {
-        throw new NotImplementedException();
+        if (BringingIntoView is not null)
+        {
+            var bringingIntoViewEventArgs = new ScrollingBringingIntoViewEventArgs();
+
+            bringingIntoViewEventArgs.SnapPointsMode = (snapPointsMode);
+            bringingIntoViewEventArgs.OffsetsChangeCorrelationId(offsetsChangeCorrelationId);
+            bringingIntoViewEventArgs.RequestEventArgs = (requestEventArgs);
+            bringingIntoViewEventArgs.TargetOffsets(targetZoomedHorizontalOffset, targetZoomedVerticalOffset);
+
+            BringingIntoView(this, bringingIntoViewEventArgs);
+            snapPointsMode = bringingIntoViewEventArgs.SnapPointsMode;
+            return !bringingIntoViewEventArgs.Cancel;
+        }
+        return true;
     }
 
     private void RaiseExpressionAnimationStatusChanged(
@@ -1514,13 +2009,23 @@ public class ScrollPresenter : Panel, IScrollAnchorProvider
         ExtentChanged?.Invoke(this, null);
     }
 
+    private void RaiseInteractionSourcesChanged()
+    {
+        throw new NotImplementedException();
+    }
+
     private void RaisePostArrange()
     {
         throw new NotImplementedException();
     }
 
+    private void RaiseStateChanged()
+    {
+        StateChanged?.Invoke(this, null);
+    }
+
     private void RaiseViewChangeCompleted(
-       bool isForScroll,
+           bool isForScroll,
        ScrollPresenterViewChangeResult result,
        int viewChangeCorrelationId)
     {
@@ -1528,10 +2033,10 @@ public class ScrollPresenter : Panel, IScrollAnchorProvider
     }
 
     private CompositionAnimation RaiseZoomAnimationStarting(
-                            ScalarKeyFrameAnimation zoomFactorAnimation,
-            float endZoomFactor,
-            Vector2 centerPoint,
-            int zoomFactorChangeCorrelationId)
+        ScalarKeyFrameAnimation zoomFactorAnimation,
+        float endZoomFactor,
+        Vector2 centerPoint,
+        int zoomFactorChangeCorrelationId)
     {
         throw new NotImplementedException();
     }
@@ -1539,6 +2044,11 @@ public class ScrollPresenter : Panel, IScrollAnchorProvider
     private void ResetAnchorElement()
     {
         throw new NotImplementedException();
+    }
+
+    private void ScrollToHorizontalOffset(double offset)
+    {
+        ScrollToOffsets(offset /*zoomedHorizontalOffset*/, m_zoomedVerticalOffset /*zoomedVerticalOffset*/);
     }
 
     private void ScrollToOffsets(double horizontalOffset, double verticalOffset)
@@ -1565,6 +2075,11 @@ public class ScrollPresenter : Panel, IScrollAnchorProvider
         }
     }
 
+    private void ScrollToVerticalOffset(double offset)
+    {
+        ScrollToOffsets(m_zoomedHorizontalOffset /*zoomedHorizontalOffset*/, offset /*zoomedVerticalOffset*/);
+    }
+
     private void SetupInteractionTrackerBoundaries()
     {
         if (m_interactionTracker is null)
@@ -1575,7 +2090,7 @@ public class ScrollPresenter : Panel, IScrollAnchorProvider
                 MaxZoomFactor);
         }
 
-        UIElement content = Content;
+        UIElement? content = Content;
 
         if (content is not null && (m_minPositionExpressionAnimation is null || m_maxPositionExpressionAnimation is null))
         {
@@ -1586,15 +2101,219 @@ public class ScrollPresenter : Panel, IScrollAnchorProvider
 
     private void SetupInteractionTrackerZoomFactorBoundaries(double minZoomFactor, double maxZoomFactor)
     {
-        throw new NotImplementedException();
+        Debug.Assert(m_interactionTracker is not null);
+
+        float oldMaxZoomFactor = m_interactionTracker.MaxScale;
+
+        minZoomFactor = Math.Max(0.0, minZoomFactor);
+        maxZoomFactor = Math.Max(minZoomFactor, maxZoomFactor);
+
+        float newMinZoomFactor = (float)(minZoomFactor);
+        float newMaxZoomFactor = (float)(maxZoomFactor);
+
+        if (newMinZoomFactor > oldMaxZoomFactor)
+        {
+            m_interactionTracker.MaxScale = (newMaxZoomFactor);
+            m_interactionTracker.MinScale = (newMinZoomFactor);
+        }
+        else
+        {
+            m_interactionTracker.MinScale = (newMinZoomFactor);
+            m_interactionTracker.MaxScale = (newMaxZoomFactor);
+        }
     }
 
     private void SetupPositionBoundariesExpressionAnimations(UIElement content)
     {
-        throw new NotImplementedException();
+        Debug.Assert(content is not null);
+        Debug.Assert(m_minPositionExpressionAnimation is not null);
+        Debug.Assert(m_maxPositionExpressionAnimation is not null);
+        Debug.Assert(m_interactionTracker is not null);
+
+        Visual scrollPresenterVisual = ElementCompositionPreview.GetElementVisual(this);
+
+        string s = m_minPositionExpressionAnimation.Expression;
+
+        if (s.Length == 0)
+        {
+            m_minPositionExpressionAnimation.SetReferenceParameter("it", m_interactionTracker);
+            m_minPositionExpressionAnimation.SetReferenceParameter("scrollPresenterVisual", scrollPresenterVisual);
+        }
+
+        m_minPositionExpressionAnimation.Expression = (GetMinPositionExpression(content));
+
+        s = m_maxPositionExpressionAnimation.Expression;
+
+        if (s.Length == 0)
+        {
+            m_maxPositionExpressionAnimation.SetReferenceParameter("it", m_interactionTracker);
+            m_maxPositionExpressionAnimation.SetReferenceParameter("scrollPresenterVisual", scrollPresenterVisual);
+        }
+
+        m_maxPositionExpressionAnimation.Expression = (GetMaxPositionExpression(content));
+
+        UpdatePositionBoundaries(content);
     }
 
     private void SetupScrollControllerVisualInterationSource(ScrollPresenterDimension dimension)
+    {
+        Debug.Assert(m_interactionTracker is not null);
+        Debug.Assert(dimension == ScrollPresenterDimension.HorizontalScroll || dimension == ScrollPresenterDimension.VerticalScroll);
+
+        VisualInteractionSource scrollControllerVisualInteractionSource = null;
+        Visual panningElementAncestorVisual = null;
+
+        if (dimension == ScrollPresenterDimension.HorizontalScroll)
+        {
+            scrollControllerVisualInteractionSource = m_horizontalScrollControllerVisualInteractionSource;
+            if (m_horizontalScrollControllerPanningInfo is not null)
+            {
+                UIElement panningElementAncestor = m_horizontalScrollControllerPanningInfo.PanningElementAncestor;
+
+                if (panningElementAncestor is not null)
+                {
+                    panningElementAncestorVisual = ElementCompositionPreview.GetElementVisual(panningElementAncestor);
+                }
+            }
+        }
+        else
+        {
+            scrollControllerVisualInteractionSource = m_verticalScrollControllerVisualInteractionSource;
+            if (m_verticalScrollControllerPanningInfo is not null)
+            {
+                UIElement panningElementAncestor = m_verticalScrollControllerPanningInfo.PanningElementAncestor;
+
+                if (panningElementAncestor is not null)
+                {
+                    panningElementAncestorVisual = ElementCompositionPreview.GetElementVisual(panningElementAncestor);
+                }
+            }
+        }
+
+        if (panningElementAncestorVisual is null && scrollControllerVisualInteractionSource is not null)
+        {
+            // The IScrollController no longer uses a Visual.
+            VisualInteractionSource otherScrollControllerVisualInteractionSource =
+                dimension == ScrollPresenterDimension.HorizontalScroll ? m_verticalScrollControllerVisualInteractionSource : m_horizontalScrollControllerVisualInteractionSource;
+
+            if (otherScrollControllerVisualInteractionSource != scrollControllerVisualInteractionSource)
+            {
+                // The horizontal and vertical IScrollController implementations are not using the same Visual,
+                // so the old VisualInteractionSource can be discarded.
+                m_interactionTracker.InteractionSources.Remove(scrollControllerVisualInteractionSource);
+                StopScrollControllerExpressionAnimationSourcesAnimations(dimension);
+                if (dimension == ScrollPresenterDimension.HorizontalScroll)
+                {
+                    m_horizontalScrollControllerVisualInteractionSource = null;
+                    m_horizontalScrollControllerExpressionAnimationSources = null;
+                    m_horizontalScrollControllerOffsetExpressionAnimation = null;
+                    m_horizontalScrollControllerMaxOffsetExpressionAnimation = null;
+                }
+                else
+                {
+                    m_verticalScrollControllerVisualInteractionSource = null;
+                    m_verticalScrollControllerExpressionAnimationSources = null;
+                    m_verticalScrollControllerOffsetExpressionAnimation = null;
+                    m_verticalScrollControllerMaxOffsetExpressionAnimation = null;
+                }
+
+                RaiseInteractionSourcesChanged();
+            }
+            else
+            {
+                // The horizontal and vertical IScrollController implementations were using the same Visual,
+                // so the old VisualInteractionSource cannot be discarded.
+                if (dimension == ScrollPresenterDimension.HorizontalScroll)
+                {
+                    scrollControllerVisualInteractionSource.PositionXSourceMode = (InteractionSourceMode.Disabled);
+                    scrollControllerVisualInteractionSource.IsPositionXRailsEnabled = (false);
+                }
+                else
+                {
+                    scrollControllerVisualInteractionSource.PositionYSourceMode = (InteractionSourceMode.Disabled);
+                    scrollControllerVisualInteractionSource.IsPositionYRailsEnabled = (false);
+                }
+            }
+            return;
+        }
+        else if (panningElementAncestorVisual is not null)
+        {
+            if (scrollControllerVisualInteractionSource is null)
+            {
+                // The IScrollController now uses a Visual.
+                VisualInteractionSource otherScrollControllerVisualInteractionSource =
+                    dimension == ScrollPresenterDimension.HorizontalScroll ? m_verticalScrollControllerVisualInteractionSource : m_horizontalScrollControllerVisualInteractionSource;
+
+                if (otherScrollControllerVisualInteractionSource is null || otherScrollControllerVisualInteractionSource.Source != panningElementAncestorVisual)
+                {
+                    // That Visual is not shared with the other dimension, so create a new VisualInteractionSource for it.
+                    EnsureScrollControllerVisualInteractionSource(panningElementAncestorVisual, dimension);
+                }
+                else
+                {
+                    // That Visual is shared with the other dimension, so share the existing VisualInteractionSource as well.
+                    if (dimension == ScrollPresenterDimension.HorizontalScroll)
+                    {
+                        m_horizontalScrollControllerVisualInteractionSource = otherScrollControllerVisualInteractionSource;
+                    }
+                    else
+                    {
+                        m_verticalScrollControllerVisualInteractionSource = otherScrollControllerVisualInteractionSource;
+                    }
+                }
+                EnsureScrollControllerExpressionAnimationSources(dimension);
+                StartScrollControllerExpressionAnimationSourcesAnimations(dimension);
+            }
+
+            Orientation orientation;
+            bool isRailEnabled;
+
+            // Setup the VisualInteractionSource instance.
+            if (dimension == ScrollPresenterDimension.HorizontalScroll)
+            {
+                orientation = m_horizontalScrollControllerPanningInfo.PanOrientation;
+                isRailEnabled = m_horizontalScrollControllerPanningInfo.IsRailEnabled;
+
+                if (orientation == Orientation.Horizontal)
+                {
+                    m_horizontalScrollControllerVisualInteractionSource.PositionXSourceMode = (InteractionSourceMode.EnabledWithoutInertia);
+                    m_horizontalScrollControllerVisualInteractionSource.IsPositionXRailsEnabled = (isRailEnabled);
+                }
+                else
+                {
+                    m_horizontalScrollControllerVisualInteractionSource.PositionYSourceMode = (InteractionSourceMode.EnabledWithoutInertia);
+                    m_horizontalScrollControllerVisualInteractionSource.IsPositionYRailsEnabled = (isRailEnabled);
+                }
+            }
+            else
+            {
+                orientation = m_verticalScrollControllerPanningInfo.PanOrientation;
+                isRailEnabled = m_verticalScrollControllerPanningInfo.IsRailEnabled;
+
+                if (orientation == Orientation.Horizontal)
+                {
+                    m_verticalScrollControllerVisualInteractionSource.PositionXSourceMode = (InteractionSourceMode.EnabledWithoutInertia);
+                    m_verticalScrollControllerVisualInteractionSource.IsPositionXRailsEnabled = (isRailEnabled);
+                }
+                else
+                {
+                    m_verticalScrollControllerVisualInteractionSource.PositionYSourceMode = (InteractionSourceMode.EnabledWithoutInertia);
+                    m_verticalScrollControllerVisualInteractionSource.IsPositionYRailsEnabled = (isRailEnabled);
+                }
+            }
+
+            if (scrollControllerVisualInteractionSource is null)
+            {
+                SetupScrollControllerVisualInterationSourcePositionModifiers(
+                    dimension,
+                    orientation);
+            }
+        }
+    }
+
+    private void SetupScrollControllerVisualInterationSourcePositionModifiers(
+        ScrollPresenterDimension dimension,
+        Orientation orientation)
     {
         throw new NotImplementedException();
     }
@@ -1649,22 +2368,102 @@ public class ScrollPresenter : Panel, IScrollAnchorProvider
         ScrollPresenterDimension dimension,
         bool flowDirectionChanged)
     {
-        throw new NotImplementedException();
+        Debug.Assert(visualInteractionSource is not null);
+        Debug.Assert(dimension == ScrollPresenterDimension.HorizontalScroll || dimension == ScrollPresenterDimension.VerticalScroll);
+        Debug.Assert(m_interactionTracker is not null);
+
+        bool isHorizontalDimension = dimension == ScrollPresenterDimension.HorizontalScroll;
+        bool isRightToLeftDirection = FlowDirection == FlowDirection.RightToLeft;
+        float xamlLayoutOffset = isHorizontalDimension ? m_contentLayoutOffsetX : m_contentLayoutOffsetY;
+
+        // Note that resetting to 'nullptr' when xamlLayoutOffset is 0 and isRightToLeftDirection is False is not working, so the branch below
+        // is used instead when flowDirectionChanged is True.
+        if (xamlLayoutOffset == 0.0f && !(isHorizontalDimension && (isRightToLeftDirection || flowDirectionChanged)))
+        {
+            if (isHorizontalDimension)
+            {
+                visualInteractionSource.ConfigureCenterPointXModifiers(null);
+                m_interactionTracker.ConfigureCenterPointXInertiaModifiers(null);
+            }
+            else
+            {
+                visualInteractionSource.ConfigureCenterPointYModifiers(null);
+                m_interactionTracker.ConfigureCenterPointYInertiaModifiers(null);
+            }
+        }
+        else
+        {
+            Compositor compositor = visualInteractionSource.Compositor;
+            ExpressionAnimation conditionCenterPointModifier = compositor.CreateExpressionAnimation("true");
+            CompositionConditionalValue conditionValueCenterPointModifier = CompositionConditionalValue.Create(compositor);
+            string valueCenterPointModifierExpression;
+
+            if (isHorizontalDimension)
+            {
+                valueCenterPointModifierExpression = isRightToLeftDirection ? "-visualInteractionSource.CenterPoint.X + xamlLayoutOffset" : "visualInteractionSource.CenterPoint.X - xamlLayoutOffset";
+            }
+            else
+            {
+                valueCenterPointModifierExpression = "visualInteractionSource.CenterPoint.Y - xamlLayoutOffset";
+            }
+
+            ExpressionAnimation valueCenterPointModifier = compositor.CreateExpressionAnimation(valueCenterPointModifierExpression);
+
+            valueCenterPointModifier.SetReferenceParameter("visualInteractionSource", visualInteractionSource);
+            valueCenterPointModifier.SetScalarParameter("xamlLayoutOffset", xamlLayoutOffset);
+
+            conditionValueCenterPointModifier.Condition = (conditionCenterPointModifier);
+            conditionValueCenterPointModifier.Value = (valueCenterPointModifier);
+
+            var centerPointModifiers = new List<CompositionConditionalValue>();
+            centerPointModifiers.Add(conditionValueCenterPointModifier);
+
+            if (isHorizontalDimension)
+            {
+                visualInteractionSource.ConfigureCenterPointXModifiers(centerPointModifiers);
+                m_interactionTracker.ConfigureCenterPointXInertiaModifiers(centerPointModifiers);
+            }
+            else
+            {
+                visualInteractionSource.ConfigureCenterPointYModifiers(centerPointModifiers);
+                m_interactionTracker.ConfigureCenterPointYInertiaModifiers(centerPointModifiers);
+            }
+        }
     }
 
     private void SetupVisualInteractionSourceMode(
-            VisualInteractionSource visualInteractionSource,
-            ScrollPresenterDimension dimension,
-            ScrollingScrollMode scrollMode)
+        VisualInteractionSource visualInteractionSource,
+        ScrollPresenterDimension dimension,
+        ScrollingScrollMode scrollMode)
     {
-        throw new NotImplementedException();
+        Debug.Assert(visualInteractionSource is not null);
+        Debug.Assert(scrollMode == ScrollingScrollMode.Enabled || scrollMode == ScrollingScrollMode.Disabled);
+
+        InteractionSourceMode interactionSourceMode = InteractionSourceModeFromScrollMode(scrollMode);
+
+        switch (dimension)
+        {
+            case ScrollPresenterDimension.HorizontalScroll:
+                visualInteractionSource.PositionXSourceMode = (interactionSourceMode);
+                break;
+
+            case ScrollPresenterDimension.VerticalScroll:
+                visualInteractionSource.PositionYSourceMode = (interactionSourceMode);
+                break;
+
+            default:
+                Debug.Assert(false);
+                break;
+        }
     }
 
     private void SetupVisualInteractionSourceMode(
-            VisualInteractionSource visualInteractionSource,
-            ScrollingZoomMode zoomMode)
+        VisualInteractionSource visualInteractionSource,
+        ScrollingZoomMode zoomMode)
     {
-        throw new NotImplementedException();
+        Debug.Assert(visualInteractionSource is not null);
+
+        visualInteractionSource.ScaleSourceMode = (InteractionSourceModeFromZoomMode(zoomMode));
     }
 
     private void SetupVisualInteractionSourceRailingMode(
@@ -1687,7 +2486,55 @@ public class ScrollPresenter : Panel, IScrollAnchorProvider
 
     private void StartExpressionAnimationSourcesAnimations()
     {
-        throw new NotImplementedException();
+        Debug.Assert(m_interactionTracker is not null);
+        Debug.Assert(m_expressionAnimationSources is not null);
+        Debug.Assert(m_positionSourceExpressionAnimation is not null);
+        Debug.Assert(m_minPositionSourceExpressionAnimation is not null);
+        Debug.Assert(m_maxPositionSourceExpressionAnimation is not null);
+        Debug.Assert(m_zoomFactorSourceExpressionAnimation is not null);
+
+        m_expressionAnimationSources.StartAnimation(s_positionSourcePropertyName, m_positionSourceExpressionAnimation);
+        RaiseExpressionAnimationStatusChanged(true /*isExpressionAnimationStarted*/, s_positionSourcePropertyName /*propertyName*/);
+
+        m_expressionAnimationSources.StartAnimation(s_minPositionSourcePropertyName, m_minPositionSourceExpressionAnimation);
+        RaiseExpressionAnimationStatusChanged(true /*isExpressionAnimationStarted*/, s_minPositionSourcePropertyName /*propertyName*/);
+
+        m_expressionAnimationSources.StartAnimation(s_maxPositionSourcePropertyName, m_maxPositionSourceExpressionAnimation);
+        RaiseExpressionAnimationStatusChanged(true /*isExpressionAnimationStarted*/, s_maxPositionSourcePropertyName /*propertyName*/);
+
+        m_expressionAnimationSources.StartAnimation(s_zoomFactorSourcePropertyName, m_zoomFactorSourceExpressionAnimation);
+        RaiseExpressionAnimationStatusChanged(true /*isExpressionAnimationStarted*/, s_zoomFactorSourcePropertyName /*propertyName*/);
+    }
+
+    private void StartScrollControllerExpressionAnimationSourcesAnimations(
+        ScrollPresenterDimension dimension)
+    {
+        Debug.Assert(dimension == ScrollPresenterDimension.HorizontalScroll || dimension == ScrollPresenterDimension.VerticalScroll);
+
+        if (dimension == ScrollPresenterDimension.HorizontalScroll)
+        {
+            Debug.Assert(m_horizontalScrollControllerExpressionAnimationSources is not null);
+            Debug.Assert(m_horizontalScrollControllerOffsetExpressionAnimation is not null);
+            Debug.Assert(m_horizontalScrollControllerMaxOffsetExpressionAnimation is not null);
+
+            m_horizontalScrollControllerExpressionAnimationSources.StartAnimation(s_offsetPropertyName, m_horizontalScrollControllerOffsetExpressionAnimation);
+            RaiseExpressionAnimationStatusChanged(true /*isExpressionAnimationStarted*/, s_offsetPropertyName /*propertyName*/);
+
+            m_horizontalScrollControllerExpressionAnimationSources.StartAnimation(s_maxOffsetPropertyName, m_horizontalScrollControllerMaxOffsetExpressionAnimation);
+            RaiseExpressionAnimationStatusChanged(true /*isExpressionAnimationStarted*/, s_maxOffsetPropertyName /*propertyName*/);
+        }
+        else
+        {
+            Debug.Assert(m_verticalScrollControllerExpressionAnimationSources is not null);
+            Debug.Assert(m_verticalScrollControllerOffsetExpressionAnimation is not null);
+            Debug.Assert(m_verticalScrollControllerMaxOffsetExpressionAnimation is not null);
+
+            m_verticalScrollControllerExpressionAnimationSources.StartAnimation(s_offsetPropertyName, m_verticalScrollControllerOffsetExpressionAnimation);
+            RaiseExpressionAnimationStatusChanged(true /*isExpressionAnimationStarted*/, s_offsetPropertyName /*propertyName*/);
+
+            m_verticalScrollControllerExpressionAnimationSources.StartAnimation(s_maxOffsetPropertyName, m_verticalScrollControllerMaxOffsetExpressionAnimation);
+            RaiseExpressionAnimationStatusChanged(true /*isExpressionAnimationStarted*/, s_maxOffsetPropertyName /*propertyName*/);
+        }
     }
 
     private void StartTransformExpressionAnimations(UIElement content)
@@ -1708,6 +2555,64 @@ public class ScrollPresenter : Panel, IScrollAnchorProvider
         }
     }
 
+    private bool StartTranslationAndZoomFactorExpressionAnimations(bool interruptCountdown = false)
+    {
+        if (m_translationAndZoomFactorAnimationsRestartTicksCountdown > 0)
+        {
+            // A Translation and Scale animations restart is pending after the Idle State was reached or a zoom factor change operation completed.
+            m_translationAndZoomFactorAnimationsRestartTicksCountdown--;
+
+            if (m_translationAndZoomFactorAnimationsRestartTicksCountdown == 0 || interruptCountdown)
+            {
+                // Countdown is over or state is no longer Idle, restart the Translation and Scale animations.
+                Debug.Assert(m_interactionTracker is not null);
+
+                if (m_translationAndZoomFactorAnimationsRestartTicksCountdown > 0)
+                {
+                    Debug.Assert(interruptCountdown);
+
+                    m_translationAndZoomFactorAnimationsRestartTicksCountdown = 0;
+                }
+
+                StartTransformExpressionAnimations(Content);
+            }
+            else
+            {
+                // Countdown needs to continue.
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    private void StopScrollControllerExpressionAnimationSourcesAnimations(
+        ScrollPresenterDimension dimension)
+    {
+        Debug.Assert(dimension == ScrollPresenterDimension.HorizontalScroll || dimension == ScrollPresenterDimension.VerticalScroll);
+
+        if (dimension == ScrollPresenterDimension.HorizontalScroll)
+        {
+            Debug.Assert(m_horizontalScrollControllerExpressionAnimationSources is not null);
+
+            m_horizontalScrollControllerExpressionAnimationSources.StopAnimation(s_offsetPropertyName);
+            RaiseExpressionAnimationStatusChanged(false /*isExpressionAnimationStarted*/, s_offsetPropertyName /*propertyName*/);
+
+            m_horizontalScrollControllerExpressionAnimationSources.StopAnimation(s_maxOffsetPropertyName);
+            RaiseExpressionAnimationStatusChanged(false /*isExpressionAnimationStarted*/, s_maxOffsetPropertyName /*propertyName*/);
+        }
+        else
+        {
+            Debug.Assert(m_verticalScrollControllerExpressionAnimationSources is not null);
+
+            m_verticalScrollControllerExpressionAnimationSources.StopAnimation(s_offsetPropertyName);
+            RaiseExpressionAnimationStatusChanged(false /*isExpressionAnimationStarted*/, s_offsetPropertyName /*propertyName*/);
+
+            m_verticalScrollControllerExpressionAnimationSources.StopAnimation(s_maxOffsetPropertyName);
+            RaiseExpressionAnimationStatusChanged(false /*isExpressionAnimationStarted*/, s_maxOffsetPropertyName /*propertyName*/);
+        }
+    }
+
     private void StopTransformExpressionAnimations(UIElement content)
     {
         if (content is not null)
@@ -1724,12 +2629,39 @@ public class ScrollPresenter : Panel, IScrollAnchorProvider
         }
     }
 
+    private void StopTranslationAndZoomFactorExpressionAnimations()
+    {
+        if (m_zoomFactorExpressionAnimation is not null && m_animationRestartZoomFactor != m_zoomFactor)
+        {
+            // The zoom factor has changed since the last restart of the Translation and Scale animations.
+            UIElement content = Content;
+
+            if (m_translationAndZoomFactorAnimationsRestartTicksCountdown == 0)
+            {
+                // Stop Translation and Scale animations to trigger rasterization of Content, to avoid fuzzy text rendering for instance.
+                StopTransformExpressionAnimations(content);
+
+                // Trigger ScrollPresenter::OnCompositionTargetRendering calls in order to re-establish the Translation and Scale animations
+                // after the Content rasterization was triggered within a few ticks.
+                HookCompositionTargetRendering();
+            }
+
+            m_animationRestartZoomFactor = m_zoomFactor;
+            m_translationAndZoomFactorAnimationsRestartTicksCountdown = s_translationAndZoomFactorAnimationsRestartTicks;
+        }
+    }
+
     private void UnhookCompositionTargetRendering()
     {
         Windows.UI.Xaml.Media.CompositionTarget.Rendering -= OnCompositionTargetRendering;
     }
 
     private void UnhookContentPropertyChanged(UIElement content)
+    {
+        throw new NotImplementedException();
+    }
+
+    private void UnhookVerticalScrollControllerPanningInfoEvents()
     {
         throw new NotImplementedException();
     }
@@ -1813,10 +2745,14 @@ public class ScrollPresenter : Panel, IScrollAnchorProvider
 
     private void UpdateExpressionAnimationSources()
     {
-        throw new NotImplementedException();
+        Debug.Assert(m_interactionTracker is not null);
+        Debug.Assert(m_expressionAnimationSources is not null);
+
+        m_expressionAnimationSources.InsertVector2(s_extentSourcePropertyName, new Vector2((float)(m_unzoomedExtentWidth), (float)(m_unzoomedExtentHeight)));
+        m_expressionAnimationSources.InsertVector2(s_viewportSourcePropertyName, new Vector2((float)(m_viewportWidth), (float)(m_viewportHeight)));
     }
 
-    private void UpdatePositionBoundaries(UIElement content)
+    private void UpdatePositionBoundaries(UIElement? content)
     {
         Debug.Assert(m_minPositionExpressionAnimation is not null);
         Debug.Assert(m_maxPositionExpressionAnimation is not null);
@@ -1863,7 +2799,22 @@ public class ScrollPresenter : Panel, IScrollAnchorProvider
 
     private void UpdateScrollControllerIsScrollable(ScrollPresenterDimension dimension)
     {
-        throw new NotImplementedException();
+        if (dimension == ScrollPresenterDimension.HorizontalScroll)
+        {
+            if (m_horizontalScrollController is not null)
+            {
+                m_horizontalScrollController.SetIsScrollable(ComputedHorizontalScrollMode == ScrollingScrollMode.Enabled);
+            }
+        }
+        else
+        {
+            Debug.Assert(dimension == ScrollPresenterDimension.VerticalScroll);
+
+            if (m_verticalScrollController is not null)
+            {
+                m_verticalScrollController.SetIsScrollable(ComputedVerticalScrollMode == ScrollingScrollMode.Enabled);
+            }
+        }
     }
 
     private void UpdateScrollControllerValues(ScrollPresenterDimension dimension)
@@ -1896,7 +2847,17 @@ public class ScrollPresenter : Panel, IScrollAnchorProvider
 
     private void UpdateState(ScrollingInteractionState state)
     {
-        throw new NotImplementedException();
+        if (state != ScrollingInteractionState.Idle)
+        {
+            // Restart the interrupted expression animations sooner than planned to visualize the new view change immediately.
+            StartTranslationAndZoomFactorExpressionAnimations(true /*interruptCountdown*/);
+        }
+
+        if (state != m_state)
+        {
+            m_state = state;
+            RaiseStateChanged();
+        }
     }
 
     private void UpdateTransformSource(UIElement oldContent, UIElement newContent)

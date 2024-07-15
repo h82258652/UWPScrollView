@@ -2020,15 +2020,16 @@ public class ScrollView : Control
     {
         if (m_bringIntoViewOperations.Count > 0)
         {
-            foreach (var operationsIter in m_bringIntoViewOperations)
+            for (var i = 0; i < m_bringIntoViewOperations.Count; i++)
             {
-                var bringIntoViewOperation = operationsIter;
+                var bringIntoViewOperation = m_bringIntoViewOperations[i];
 
                 if (bringIntoViewOperation.HasMaxTicksCount)
                 {
                     // This ScrollView is no longer expected to receive BringingIntoView notifications from its ScrollPresenter,
                     // resulting from a FocusManager::TryFocusAsync call in ScrollView::HandleKeyDownForXYNavigation.
                     m_bringIntoViewOperations.Remove(bringIntoViewOperation);
+                    i--;
                 }
                 else
                 {
@@ -2204,7 +2205,7 @@ public class ScrollView : Control
                     // We either want to cancel this BringIntoView operation (because we are handling the scrolling ourselves) or we want to force the operation to be animated
                     if (bringIntoViewOperation.ShouldCancelBringIntoView())
                     {
-                        args.Cancel = (true);
+                        args.Cancel = true;
                     }
                     else
                     {

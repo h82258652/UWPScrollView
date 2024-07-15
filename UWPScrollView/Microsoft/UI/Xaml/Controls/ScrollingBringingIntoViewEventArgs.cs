@@ -1,5 +1,4 @@
-﻿using System;
-using Windows.UI.Xaml;
+﻿using Windows.UI.Xaml;
 
 namespace Microsoft.UI.Xaml.Controls;
 
@@ -20,7 +19,7 @@ public sealed class ScrollingBringingIntoViewEventArgs
 
     private double m_targetVerticalOffset;
 
-    private ScrollingBringingIntoViewEventArgs()
+    internal ScrollingBringingIntoViewEventArgs()
     {
     }
 
@@ -59,6 +58,10 @@ public sealed class ScrollingBringingIntoViewEventArgs
         {
             return m_requestEventArgs;
         }
+        internal set
+        {
+            m_requestEventArgs = value;
+        }
     }
 
     /// <summary>
@@ -96,5 +99,16 @@ public sealed class ScrollingBringingIntoViewEventArgs
         {
             return m_targetVerticalOffset;
         }
+    }
+
+    internal void OffsetsChangeCorrelationId(int offsetsChangeCorrelationId)
+    {
+        m_offsetsChangeCorrelationId = offsetsChangeCorrelationId;
+    }
+
+    internal void TargetOffsets(double targetHorizontalOffset, double targetVerticalOffset)
+    {
+        m_targetHorizontalOffset = targetHorizontalOffset;
+        m_targetVerticalOffset = targetVerticalOffset;
     }
 }

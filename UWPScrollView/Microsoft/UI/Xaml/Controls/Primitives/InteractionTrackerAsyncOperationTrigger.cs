@@ -1,5 +1,8 @@
-﻿namespace Microsoft.UI.Xaml.Controls.Primitives;
+﻿using System;
 
+namespace Microsoft.UI.Xaml.Controls.Primitives;
+
+[Flags]
 public enum InteractionTrackerAsyncOperationTrigger
 {
     // Operation is triggered by a direct call to ScrollPresenter's ScrollTo/ScrollBy/AddScrollVelocity or ZoomTo/ZoomBy/AddZoomVelocity
