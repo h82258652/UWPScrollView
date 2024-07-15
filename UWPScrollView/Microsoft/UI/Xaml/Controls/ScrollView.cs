@@ -370,7 +370,7 @@ public class ScrollView : Control
     /// <summary>
     /// Occurs when either the <see cref="ExtentWidth"/> or <see cref="ExtentHeight"/> properties has changed.
     /// </summary>
-    public event TypedEventHandler<ScrollView, object>? ExtentChanged;
+    public event TypedEventHandler<ScrollView, object?>? ExtentChanged;
 
     /// <summary>
     /// Occurs when a call to <see cref="ScrollTo"/> or <see cref="ScrollBy"/> triggers an animation.
@@ -851,7 +851,7 @@ public class ScrollView : Control
 
         UIElement horizontalScrollControllerElement = (UIElement)GetTemplateChild(s_horizontalScrollBarPartName);
         IScrollController? horizontalScrollController = horizontalScrollControllerElement as IScrollController;
-        ScrollBar horizontalScrollBar = null;
+        ScrollBar? horizontalScrollBar = null;
 
         if (horizontalScrollControllerElement is not null && horizontalScrollController is null)
         {
@@ -880,7 +880,7 @@ public class ScrollView : Control
 
         UIElement verticalScrollControllerElement = (UIElement)GetTemplateChild(s_verticalScrollBarPartName);
         IScrollController verticalScrollController = verticalScrollControllerElement as IScrollController;
-        ScrollBar verticalScrollBar = null;
+        ScrollBar? verticalScrollBar = null;
 
         if (verticalScrollControllerElement is not null && verticalScrollController is null)
         {
@@ -2220,7 +2220,7 @@ public class ScrollView : Control
         BringingIntoView?.Invoke(this, args);
     }
 
-    private void OnScrollPresenterExtentChanged(object sender, object args)
+    private void OnScrollPresenterExtentChanged(object sender, object? args)
     {
         ExtentChanged?.Invoke(this, args);
     }
@@ -2721,7 +2721,7 @@ public class ScrollView : Control
             }
             else
             {
-                isHorizontalScrollControllerVisible = (scrollBarVisibility == ScrollingScrollBarVisibility.Visible);
+                isHorizontalScrollControllerVisible = scrollBarVisibility == ScrollingScrollBarVisibility.Visible;
             }
 
             SetValue(ComputedHorizontalScrollBarVisibilityProperty, isHorizontalScrollControllerVisible ? Visibility.Visible : Visibility.Collapsed);
@@ -2840,8 +2840,8 @@ public class ScrollView : Control
     {
         UnhookVerticalScrollControllerEvents(false /*isForDestructor*/);
 
-        m_verticalScrollController = (verticalScrollController);
-        m_verticalScrollControllerElement = (verticalScrollControllerElement);
+        m_verticalScrollController = verticalScrollController;
+        m_verticalScrollControllerElement = verticalScrollControllerElement;
         HookVerticalScrollControllerEvents();
         UpdateScrollPresenterVerticalScrollController(verticalScrollController);
     }
