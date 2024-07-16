@@ -1,20 +1,18 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿namespace Microsoft.UI.Xaml.Controls.Primitives;
 
-namespace Microsoft.UI.Xaml.Controls.Primitives
+internal class OffsetsChange : ViewChange
 {
-    internal class OffsetsChange
-    {
-        public OffsetsChange(
+    public OffsetsChange(
         double zoomedHorizontalOffset,
         double zoomedVerticalOffset,
         ScrollPresenterViewKind offsetsKind,
-        object options)
-        {
-            throw new NotImplementedException();
-        }
+        object options) : base(offsetsKind, options)
+    {
+        ZoomedHorizontalOffset = zoomedHorizontalOffset;
+        ZoomedVerticalOffset = zoomedVerticalOffset;
     }
+
+    public double ZoomedHorizontalOffset { get; set; }
+
+    public double ZoomedVerticalOffset { get; set; }
 }

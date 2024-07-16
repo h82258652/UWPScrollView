@@ -1,13 +1,13 @@
-﻿using System;
-
-namespace Microsoft.UI.Xaml.Controls.Primitives;
+﻿namespace Microsoft.UI.Xaml.Controls.Primitives;
 
 /// <summary>
 /// Represents the base class for scrolling snap points used by a <see cref="ScrollPresenter"/> or other scrolling control.
 /// </summary>
 public class ScrollSnapPointBase : SnapPointBase
 {
-    internal ScrollSnapPointBase()
+    protected ScrollSnapPointsAlignment m_alignment = ScrollSnapPointsAlignment.Near;
+
+    protected ScrollSnapPointBase()
     {
     }
 
@@ -18,7 +18,7 @@ public class ScrollSnapPointBase : SnapPointBase
     {
         get
         {
-            throw new NotImplementedException();
+            return m_alignment;
         }
     }
 }

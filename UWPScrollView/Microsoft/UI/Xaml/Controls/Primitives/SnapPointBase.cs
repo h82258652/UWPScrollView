@@ -8,4 +8,14 @@ public class SnapPointBase
     internal SnapPointBase()
     {
     }
+
+    public virtual int SnapCount()
+    {
+        return 0;
+    }
+
+    public virtual bool OnUpdateViewport(double newViewport)
+    {
+        return false;
+    }
 }

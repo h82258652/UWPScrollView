@@ -5,4 +5,14 @@
     <Nullable>enable</Nullable>
 	<RootNamespace></RootNamespace>
   </PropertyGroup>
+  <ItemGroup>
+	<None Remove="Microsoft\UI\Xaml\Controls\ScrollView.xaml" />
+	<Page Include="Microsoft\UI\Xaml\Controls\ScrollView.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <None Remove="Themes\Generic.xaml" />
+    <Page Include="Themes\Generic.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+  </ItemGroup>
 </Project>

@@ -14,6 +14,7 @@ using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
 using Windows.UI.Xaml.Controls.Primitives;
 using Windows.UI.Xaml.Input;
+using Windows.UI.Xaml.Markup;
 using Windows.UI.Xaml.Media.Animation;
 
 namespace Microsoft.UI.Xaml.Controls;
@@ -21,6 +22,7 @@ namespace Microsoft.UI.Xaml.Controls;
 /// <summary>
 /// Represents a container that provides scroll, pan, and zoom support for its content.
 /// </summary>
+[ContentProperty(Name = nameof(Content))]
 public class ScrollView : Control
 {
     /// <summary>

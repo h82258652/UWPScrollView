@@ -9,9 +9,15 @@ namespace Microsoft.UI.Xaml.Controls;
 /// </summary>
 public sealed class ScrollingZoomAnimationStartingEventArgs
 {
-    private float m_endZoomFactor;
+    private float m_endZoomFactor = 1;
 
-    private ScrollingZoomAnimationStartingEventArgs()
+    private float m_startZoomFactor = 1;
+
+    private int m_zoomFactorChangeCorrelationId = -1;
+
+    private CompositionAnimation m_animation;
+
+    internal ScrollingZoomAnimationStartingEventArgs()
     { }
 
     /// <summary>
@@ -71,5 +77,25 @@ public sealed class ScrollingZoomAnimationStartingEventArgs
         {
             throw new NotImplementedException();
         }
+    }
+
+    internal void SetCenterPoint(Vector2 centerPoint)
+    {
+        throw new NotImplementedException();
+    }
+
+    internal void SetEndZoomFactor(float endZoomFactor)
+    {
+        m_endZoomFactor = endZoomFactor;
+    }
+
+    internal void SetStartZoomFactor(float startZoomFactor)
+    {
+        m_startZoomFactor = startZoomFactor;
+    }
+
+    internal void SetZoomFactorChangeCorrelationId(int zoomFactorChangeCorrelationId)
+    {
+        throw new NotImplementedException();
     }
 }

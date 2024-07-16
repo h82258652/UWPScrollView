@@ -1,4 +1,5 @@
 ﻿using Microsoft.UI.Xaml.Controls;
+using Windows.Foundation;
 using Windows.UI.ViewManagement;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Media;
@@ -7,7 +8,19 @@ namespace Microsoft.UI;
 
 internal static class SharedHelpers
 {
-    internal static bool IsAncestor(DependencyObject? child, ScrollView? parent, bool checkVisibility)
+    internal static bool DoRectsIntersect(Rect rect1 , Rect rect2)
+    {
+
+    var doIntersect =
+            !(rect1.Width <= 0 || rect1.Height <= 0 || rect2.Width <= 0 || rect2.Height <= 0) &&
+            (rect2.X <= rect1.X + rect1.Width) &&
+            (rect2.X + rect2.Width >= rect1.X) &&
+            (rect2.Y <= rect1.Y + rect1.Height) &&
+            (rect2.Y + rect2.Height >= rect1.Y);
+        return doIntersect;
+    }
+
+    internal static bool IsAncestor(DependencyObject? child, DependencyObject? parent, bool checkVisibility = false)
     {
         if (child is null || parent is null || child == parent)
         {

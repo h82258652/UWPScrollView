@@ -24,6 +24,21 @@ public sealed class ScrollingScrollAnimationStartingEventArgs
         }
     }
 
+    internal void SetStartPosition(Vector2 startPosition)
+    {
+        throw new NotImplementedException();
+    }
+
+    internal void SetEndPosition(Vector2 endPosition)
+    {
+        throw new NotImplementedException();
+    }
+
+    internal void SetOffsetsChangeCorrelationId(int offsetsChangeCorrelationId)
+    {
+        throw new NotImplementedException();
+    }
+
     /// <summary>
     /// Gets the correlation ID associated with the animated scroll offset change, previously returned by <see cref="ScrollView.ScrollTo"/> or <see cref="ScrollView.ScrollBy"/>.
     /// </summary>

@@ -1,4 +1,4 @@
-﻿using System;
+﻿using Microsoft.UI.Xaml.Controls.Primitives;
 
 namespace Microsoft.UI.Xaml.Controls;
 
@@ -8,8 +8,9 @@ namespace Microsoft.UI.Xaml.Controls;
 public sealed class ScrollingScrollCompletedEventArgs
 {
     private int m_offsetsChangeCorrelationId = -1;
+    private ScrollPresenterViewChangeResult m_result = ScrollPresenterViewChangeResult.Completed;
 
-    private ScrollingScrollCompletedEventArgs()
+    internal ScrollingScrollCompletedEventArgs()
     {
     }
 
@@ -22,5 +23,20 @@ public sealed class ScrollingScrollCompletedEventArgs
         {
             return m_offsetsChangeCorrelationId;
         }
+    }
+
+    internal void OffsetsChangeCorrelationId(int offsetsChangeCorrelationId)
+    {
+        m_offsetsChangeCorrelationId = offsetsChangeCorrelationId;
+    }
+
+    internal ScrollPresenterViewChangeResult Result()
+    {
+        return m_result;
+    }
+
+    internal void Result(ScrollPresenterViewChangeResult result)
+    {
+        m_result = result;
     }
 }

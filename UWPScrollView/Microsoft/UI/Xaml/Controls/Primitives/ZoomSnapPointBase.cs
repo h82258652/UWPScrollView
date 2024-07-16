@@ -5,7 +5,7 @@
 /// </summary>
 public class ZoomSnapPointBase : SnapPointBase
 {
-    internal ZoomSnapPointBase()
+    protected ZoomSnapPointBase()
     {
     }
 }
