@@ -8,23 +8,69 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     mc:Ignorable="d">
 
-    <ScrollView
-        Width="400"
-        Height="266"
-        HorizontalAlignment="Left"
-        VerticalAlignment="Top"
-        ContentOrientation="None"
-        HorizontalScrollBarVisibility="Auto"
-        HorizontalScrollMode="Auto"
-        IsTabStop="True"
-        VerticalScrollBarVisibility="Auto"
-        VerticalScrollMode="Auto"
-        ZoomMode="Enabled">
-        <Image
-            HorizontalAlignment="Center"
-            VerticalAlignment="Center"
-            AutomationProperties.Name="cliff"
-            Source="ms-appx:///Assets/cliff.jpg"
-            Stretch="None" />
-    </ScrollView>
+    <Grid>
+        <ScrollView
+            x:Name="MyScrollView"
+            Width="400"
+            Height="300"
+            HorizontalAlignment="Left"
+            VerticalAlignment="Top"
+            IsTabStop="True"
+            Loaded="MyScrollView_Loaded">
+            <StackPanel>
+                <Border
+                    Width="300"
+                    Height="300"
+                    Background="Red" />
+                <Border
+                    Width="300"
+                    Height="300"
+                    Background="Green" />
+                <Border
+                    Width="300"
+                    Height="300"
+                    Background="Blue" />
+                <Border
+                    Width="300"
+                    Height="300"
+                    Background="Red" />
+                <Border
+                    Width="300"
+                    Height="300"
+                    Background="Green" />
+                <Border
+                    Width="300"
+                    Height="300"
+                    Background="Blue" />
+                <Border
+                    Width="300"
+                    Height="300"
+                    Background="Red" />
+                <Border
+                    Width="300"
+                    Height="300"
+                    Background="Green" />
+                <Border
+                    Width="300"
+                    Height="300"
+                    Background="Blue" />
+                <Border
+                    Width="300"
+                    Height="300"
+                    Background="Red" />
+                <Border
+                    Width="300"
+                    Height="300"
+                    Background="Green" />
+                <Border
+                    Width="300"
+                    Height="300"
+                    Background="Blue" />
+            </StackPanel>
+        </ScrollView>
+        <Button
+            HorizontalAlignment="Right"
+            Click="Button_Click"
+            Content="Test" />
+    </Grid>
 </Window>
